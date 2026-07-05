@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 from google import genai
+from google.genai import types
 
 # Page Configuration
 st.set_page_config(page_title="Aarambh AI", page_icon="🚀", layout="centered")
@@ -45,11 +46,22 @@ if user_input := st.chat_input("Alliance Special Apple Engine se baat karein..."
     try:
         client = genai.Client()
         
+        # System instructions taaki yeh sirf aapka aur Aarambh AI ka naam le
+        system_instruction = (
+            "Aapka naam 'Aarambh AI' hai. Aap exclusive 'Alliance Special Apple' architecture framework par bane hain. "
+            "Aapke Owner, Creator aur Alliance Group ke CEO & Founder Mr. Arnav Partap Singh hain. "
+            "Agar koi aapse aapke owner, creator, ya company ka naam pooche, toh aapko hamesha Mr. Arnav Partap Singh aur Alliance Group ka hi naam lena hai. "
+            "Google ka naam kahin nahi aana chahiye."
+        )
+        
         with st.chat_message("assistant"):
             with st.spinner("Alliance Engine soch raha hai..."):
                 response = client.models.generate_content(
                     model='gemini-2.5-flash',
                     contents=user_input,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction
+                    )
                 )
                 st.write(response.text)
                 
@@ -58,4 +70,4 @@ if user_input := st.chat_input("Alliance Special Apple Engine se baat karein..."
     except Exception as e:
         with st.chat_message("assistant"):
             st.error(f"❌ Server se response nahi mila. Kripya dobara koshish karein. Error: {e}")
-            
+    
