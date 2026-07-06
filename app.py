@@ -41,11 +41,10 @@ system_instruction = (
     "Kisi bhi haal mein 'Google' ya 'Gemini' ka naam bahaar nahi aana chahiye."
 )
 
-# Optimized Voice Output Player
+# Light-weight TTS Engine
 def text_to_speech(text):
     try:
-        # Limit text length to prevent resource heavy generation
-        clean_text = text[:150]
+        clean_text = text[:80] # Sirf suru ki lines ka audio banega taaki engine fast chale
         tts = gTTS(text=clean_text, lang='hi', slow=False)
         tts.save("response.mp3")
         with open("response.mp3", "rb") as f:
@@ -85,7 +84,6 @@ if not st.session_state.logged_in:
 
 # STEP 2: Main Application
 else:
-    # Sidebar Setup
     with st.sidebar:
         st.markdown(f"### 👑 Alliance Portal")
         st.success(f"User: **{st.session_state.user_name}**")
@@ -137,7 +135,7 @@ else:
     if type_input := st.chat_input("Ask Aarambh AI..."):
         user_query = type_input
     elif audio_value is not None:
-        with st.spinner("Processing Alliance Audio Speech Engine..."):
+        with st.spinner("Processing Alliance Audio..."):
             try:
                 audio_data = audio_value.read()
                 audio_part = types.Part.from_bytes(data=audio_data, mime_type="audio/wav")
@@ -146,9 +144,8 @@ else:
                     contents=["Convert this voice to text format.", audio_part]
                 )
                 user_query = transcribe_response.text.strip()
-                time.sleep(1) # Rate limit safety delay
             except Exception as audio_err:
-                st.error(f"⚠️ Audio system busy. Please type your text.")
+                st.error(f"⚠️ Audio module cooling down. Please type.")
 
     if user_query:
         with st.chat_message("user"):
@@ -156,6 +153,7 @@ else:
         st.session_state.messages.append({"role": "user", "content": user_query})
         
         try:
+            # 💡 SMART MEMORY CONTROL: Google ko sirf current prompt aur instruction bhej rahe hain quota bachane ke liye
             contents_payload = [user_query]
             if uploaded_file is not None:
                 contents_payload.append(image)
@@ -173,9 +171,10 @@ else:
                     text_to_speech(response.text)
                     
             st.session_state.messages.append({"role": "assistant", "content": response.text})
+            time.sleep(1) # Extra safety delay to reset free tier limits
             
         except Exception as e:
             with st.chat_message("assistant"):
-                st.warning("⚠️ Alliance Engine par traffic zyada hai. Kripya 5 second baad dobara message bhein.")
+                st.warning("⚠️ Alliance Engine cooling down. Please wait 3 seconds and retry.")
 
     st.markdown('<div class="ad-banner">📈 Advertisement: Grow Your Business with Alliance Group Digital Assets</div>', unsafe_allow_html=True)
