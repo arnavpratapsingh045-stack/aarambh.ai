@@ -3,10 +3,9 @@ import streamlit as st
 from google import genai
 from google.genai import types
 from PIL import Image
-from gtts import gTTS
 import time
 
-# Page Configuration
+# Page Configuration (Pure Gemini App UI Layout)
 st.set_page_config(page_title="Aarambh AI", page_icon="🚀", layout="centered")
 
 # Custom Premium CSS Layout
@@ -25,7 +24,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Secrets validation safely
+# Secrets se API key set karna safely
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 elif "GOOGLE_API_KEY" in st.secrets:
@@ -40,18 +39,6 @@ system_instruction = (
     "tab aapko poore samman ke saath batana hai ki aapke Owner 'Mr. Arnav Partap Singh' hain aur aap 'Alliance Group' ke hain. "
     "Kisi bhi haal mein 'Google' ya 'Gemini' ka naam bahaar nahi aana chahiye."
 )
-
-def text_to_speech(text):
-    try:
-        clean_text = text[:80]
-        tts = gTTS(text=clean_text, lang='hi', slow=False)
-        tts.save("response.mp3")
-        with open("response.mp3", "rb") as f:
-            audio_bytes = f.read()
-        st.audio(audio_bytes, format="audio/mp3")
-        os.remove("response.mp3")
-    except:
-        pass
 
 # Initialize session structures safely
 if "logged_in" not in st.session_state:
@@ -133,31 +120,32 @@ else:
         image = Image.open(uploaded_file)
         st.image(image, caption="Attached Media File", width=220)
 
+    # 🎤 KEEPING THE MIC FUNCTION (Optimized)
     st.markdown("##### 🎤 Speak your prompt (Global Audio Engine):")
     audio_value = st.audio_input("Record your question...")
 
     user_query = ""
     
-    # 1. Check typing field first
+    # 1. Typing Input
     if type_input := st.chat_input("Ask Aarambh AI..."):
         user_query = type_input
         
-    # 2. Check mic transcription block with safety state checks
+    # 2. Mic Input with State Security Lock
     elif audio_value is not None:
         audio_id = audio_value.name if hasattr(audio_value, 'name') else str(len(audio_value.getvalue()))
         if st.session_state.last_processed_audio != audio_id:
-            with st.spinner("Processing Alliance Audio Speech Engine..."):
+            with st.spinner("Processing Voice Engine..."):
                 try:
                     audio_data = audio_value.read()
                     audio_part = types.Part.from_bytes(data=audio_data, mime_type="audio/wav")
                     transcribe_response = client.models.generate_content(
                         model='gemini-2.5-flash',
-                        contents=["Convert this voice to plain text format.", audio_part]
+                        contents=["Convert this voice recording exactly into standard text format.", audio_part]
                     )
                     user_query = transcribe_response.text.strip()
                     st.session_state.last_processed_audio = audio_id
                 except Exception:
-                    st.error("⚠️ Audio channel busy. Please type.")
+                    st.error("⚠️ Voice module busy. Kripya niche type karein.")
 
     if user_query:
         with st.chat_message("user"):
@@ -165,7 +153,7 @@ else:
         st.session_state.messages.append({"role": "user", "content": user_query})
         
         try:
-            # Smart token block - only current payload
+            # Light-weight Payload
             contents_payload = [user_query]
             if image is not None:
                 contents_payload.append(image)
@@ -180,17 +168,15 @@ else:
                         )
                     )
                     st.write(response.text)
-                    generate_and_play_audio(response.text)
                     
             st.session_state.messages.append({"role": "assistant", "content": response.text})
-            time.sleep(1)
+            time.sleep(1) # Safety Gap
             st.rerun()
             
         except Exception as e:
             with st.chat_message("assistant"):
-                st.warning("⚠️ Alliance Engine cooling down. Reconnecting in 3 seconds...")
+                st.warning("⚠️ Alliance Engine cooling down. Please wait 3 seconds and resend.")
                 time.sleep(3)
                 st.rerun()
 
     st.markdown('<div class="ad-banner">📈 Advertisement: Grow Your Business with Alliance Group Digital Assets</div>', unsafe_allow_html=True)
-    
