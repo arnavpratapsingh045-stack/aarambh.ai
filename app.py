@@ -4,10 +4,10 @@ from google import genai
 from google.genai import types
 from PIL import Image
 
-# Page Configuration
+# 1. Page Configuration & Title Setup
 st.set_page_config(page_title="Aarambh AI", page_icon="🚀", layout="centered")
 
-# Custom Premium CSS Layout
+# 2. Premium Design and Layout Styling (No UI Breakages)
 st.markdown("""
     <style>
     .login-container { text-align: center; padding: 40px; background-color: #F8F9FA; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 50px; }
@@ -23,7 +23,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Secrets validation safely
+# 3. API Key Mapping
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 elif "GOOGLE_API_KEY" in st.secrets:
@@ -31,7 +31,7 @@ elif "GOOGLE_API_KEY" in st.secrets:
 
 client = genai.Client()
 
-# Executive Branding System Instruction
+# 4. Strict Executive Branding (Alliance Rules)
 system_instruction = (
     "Aapka naam 'Aarambh AI' hai. Aap exclusive 'Alliance Special Apple' architecture par chalte hain. "
     "Aapko normal conversation mein khud se baar-baar owner ka naam nahi lena hai. "
@@ -40,7 +40,7 @@ system_instruction = (
     "Kisi bhi haal mein 'Google' ya 'Gemini' ka naam bahaar nahi aana chahiye."
 )
 
-# Initialize session structures safely
+# 5. Initialize States Safely
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_name" not in st.session_state:
@@ -50,7 +50,7 @@ if "messages" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# STEP 1: Secure Login Portal
+# --- STEP 1: Secure Login Portal ---
 if not st.session_state.logged_in:
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     st.image("https://img.icons8.com/color/96/google-logo.png", width=60)
@@ -69,8 +69,9 @@ if not st.session_state.logged_in:
             st.error("⚠️ Kripya Email aur Naam dono sahi se bharein!")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# STEP 2: Main Application
+# --- STEP 2: Main Application Interface ---
 else:
+    # Sidebar
     with st.sidebar:
         st.markdown(f"### 👑 Alliance Portal")
         st.success(f"User: **{st.session_state.user_name}**")
@@ -89,8 +90,10 @@ else:
         for past_chat in st.session_state.chat_history:
             st.markdown(f"💬 {past_chat}")
 
+    # Top Ad Banner
     st.markdown('<div class="ad-banner">⚡ Sponsored: Best Tech Gadgets 2026 | Click to Explore</div>', unsafe_allow_html=True)
 
+    # Welcome screen
     if len(st.session_state.messages) == 0:
         st.markdown(f'<div class="greeting-text">Hi {st.session_state.user_name}</div>', unsafe_allow_html=True)
         st.markdown('<div class="subtitle-text">Where should we start?</div>', unsafe_allow_html=True)
@@ -106,31 +109,34 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-    # Render History of Messages
+    # Render History Logs Neatly
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    # Photo Panel
-    uploaded_file = st.file_uploader("📷 Add to prompt:", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
+    # Photo Media Input
+    uploaded_file = st.file_uploader("📷 Add image to prompt:", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
     image = None
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
         st.image(image, caption="Attached Media File", width=220)
 
-    # Clean Input Chat Block
+    # Core Text Chat Input Box
     user_query = st.chat_input("Ask Aarambh AI...")
 
     if user_query:
+        # Show user message instantly
         with st.chat_message("user"):
             st.write(user_query)
         st.session_state.messages.append({"role": "user", "content": user_query})
         
         try:
+            # Build payload
             contents_payload = [user_query]
             if image is not None:
                 contents_payload.append(image)
                 
+            # Request execution
             with st.chat_message("assistant"):
                 with st.spinner(""):
                     response = client.models.generate_content(
@@ -146,8 +152,7 @@ else:
             st.rerun()
             
         except Exception:
-            # Error section completely removed as requested, page will auto-reload cleanly
             st.rerun()
 
+    # Bottom Ad Banner
     st.markdown('<div class="ad-banner">📈 Advertisement: Grow Your Business with Alliance Group Digital Assets</div>', unsafe_allow_html=True)
-    
