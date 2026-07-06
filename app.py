@@ -3,9 +3,8 @@ import streamlit as st
 from google import genai
 from google.genai import types
 from PIL import Image
-import time
 
-# Page Configuration (Pure Gemini App UI Layout)
+# Page Configuration (Pure Gemini Premium Look)
 st.set_page_config(page_title="Aarambh AI", page_icon="🚀", layout="centered")
 
 # Custom Premium CSS Layout
@@ -24,7 +23,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Secrets se API key set karna safely
+# Secrets validation safely
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 elif "GOOGLE_API_KEY" in st.secrets:
@@ -32,11 +31,12 @@ elif "GOOGLE_API_KEY" in st.secrets:
 
 client = genai.Client()
 
+# Updated Executive Branding System Instruction
 system_instruction = (
     "Aapka naam 'Aarambh AI' hai. Aap exclusive 'Alliance Special Apple' architecture par chalte hain. "
     "Aapko normal conversation mein khud se baar-baar owner ka naam nahi lena hai. "
-    "Lekin, JAB BHI koi user aapse aapke OWNER ya COMPANY ka naam pooche, "
-    "tab aapko poore samman ke saath batana hai ki aapke Owner 'Mr. Arnav Partap Singh' hain aur aap 'Alliance Group' ke hain. "
+    "Lekin, JAB BHI koi user aapse ye pooche ki 'aapko kisne banaya hai' ya aapke owner/creator kaun hain, "
+    "tab aapko poore samman ke saath batana hai ki: 'Mujhe Alliance Group ki team ne milkar banaya hai aur Alliance Group ke CEO & Founder Mr. Arnav Partap Singh hain.' "
     "Kisi bhi haal mein 'Google' ya 'Gemini' ka naam bahaar nahi aana chahiye."
 )
 
@@ -49,8 +49,6 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-if "last_processed_audio" not in st.session_state:
-    st.session_state.last_processed_audio = None
 
 # STEP 1: Secure Login Portal
 if not st.session_state.logged_in:
@@ -86,7 +84,6 @@ else:
                 first_msg = st.session_state.messages[0]["content"][:20] + "..."
                 st.session_state.chat_history.append(first_msg)
             st.session_state.messages = []
-            st.session_state.last_processed_audio = None
             st.rerun()
             
         for past_chat in st.session_state.chat_history:
@@ -109,43 +106,20 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-    # Render Active Logs
+    # Render History of Messages
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
+    # Photo/Image Uploader Panel
     uploaded_file = st.file_uploader("📷 Add to prompt:", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
     image = None
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
         st.image(image, caption="Attached Media File", width=220)
 
-    # 🎤 KEEPING THE MIC FUNCTION (Optimized)
-    st.markdown("##### 🎤 Speak your prompt (Global Audio Engine):")
-    audio_value = st.audio_input("Record your question...")
-
-    user_query = ""
-    
-    # 1. Typing Input
-    if type_input := st.chat_input("Ask Aarambh AI..."):
-        user_query = type_input
-        
-    # 2. Mic Input with State Security Lock
-    elif audio_value is not None:
-        audio_id = audio_value.name if hasattr(audio_value, 'name') else str(len(audio_value.getvalue()))
-        if st.session_state.last_processed_audio != audio_id:
-            with st.spinner("Processing Voice Engine..."):
-                try:
-                    audio_data = audio_value.read()
-                    audio_part = types.Part.from_bytes(data=audio_data, mime_type="audio/wav")
-                    transcribe_response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=["Convert this voice recording exactly into standard text format.", audio_part]
-                    )
-                    user_query = transcribe_response.text.strip()
-                    st.session_state.last_processed_audio = audio_id
-                except Exception:
-                    st.error("⚠️ Voice module busy. Kripya niche type karein.")
+    # Pure Text Chat Box Input
+    user_query = st.chat_input("Ask Aarambh AI...")
 
     if user_query:
         with st.chat_message("user"):
@@ -153,7 +127,7 @@ else:
         st.session_state.messages.append({"role": "user", "content": user_query})
         
         try:
-            # Light-weight Payload
+            # Clean light-weight data flow
             contents_payload = [user_query]
             if image is not None:
                 contents_payload.append(image)
@@ -170,13 +144,11 @@ else:
                     st.write(response.text)
                     
             st.session_state.messages.append({"role": "assistant", "content": response.text})
-            time.sleep(1) # Safety Gap
             st.rerun()
             
         except Exception as e:
             with st.chat_message("assistant"):
-                st.warning("⚠️ Alliance Engine cooling down. Please wait 3 seconds and resend.")
-                time.sleep(3)
-                st.rerun()
+                st.error("⚠️ Connection timeout. Kripya thodi der baad dobara try karein.")
 
     st.markdown('<div class="ad-banner">📈 Advertisement: Grow Your Business with Alliance Group Digital Assets</div>', unsafe_allow_html=True)
+    
