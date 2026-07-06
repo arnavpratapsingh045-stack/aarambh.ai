@@ -4,7 +4,7 @@ from google import genai
 from google.genai import types
 from PIL import Image
 
-# Page Configuration (Pure Gemini Premium Look)
+# Page Configuration
 st.set_page_config(page_title="Aarambh AI", page_icon="🚀", layout="centered")
 
 # Custom Premium CSS Layout
@@ -31,7 +31,7 @@ elif "GOOGLE_API_KEY" in st.secrets:
 
 client = genai.Client()
 
-# Updated Executive Branding System Instruction
+# Executive Branding System Instruction
 system_instruction = (
     "Aapka naam 'Aarambh AI' hai. Aap exclusive 'Alliance Special Apple' architecture par chalte hain. "
     "Aapko normal conversation mein khud se baar-baar owner ka naam nahi lena hai. "
@@ -111,14 +111,14 @@ else:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    # Photo/Image Uploader Panel
+    # Photo Panel
     uploaded_file = st.file_uploader("📷 Add to prompt:", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
     image = None
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
         st.image(image, caption="Attached Media File", width=220)
 
-    # Pure Text Chat Box Input
+    # Clean Input Chat Block
     user_query = st.chat_input("Ask Aarambh AI...")
 
     if user_query:
@@ -127,7 +127,6 @@ else:
         st.session_state.messages.append({"role": "user", "content": user_query})
         
         try:
-            # Clean light-weight data flow
             contents_payload = [user_query]
             if image is not None:
                 contents_payload.append(image)
@@ -146,9 +145,9 @@ else:
             st.session_state.messages.append({"role": "assistant", "content": response.text})
             st.rerun()
             
-        except Exception as e:
-            with st.chat_message("assistant"):
-                st.error("⚠️ Connection timeout. Kripya thodi der baad dobara try karein.")
+        except Exception:
+            # Error section completely removed as requested, page will auto-reload cleanly
+            st.rerun()
 
     st.markdown('<div class="ad-banner">📈 Advertisement: Grow Your Business with Alliance Group Digital Assets</div>', unsafe_allow_html=True)
     
