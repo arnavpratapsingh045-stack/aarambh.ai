@@ -25,7 +25,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Secrets se API key set karna
+# Secrets validation safely
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 elif "GOOGLE_API_KEY" in st.secrets:
@@ -41,10 +41,9 @@ system_instruction = (
     "Kisi bhi haal mein 'Google' ya 'Gemini' ka naam bahaar nahi aana chahiye."
 )
 
-# Light-weight TTS Engine
 def text_to_speech(text):
     try:
-        clean_text = text[:80] # Sirf suru ki lines ka audio banega taaki engine fast chale
+        clean_text = text[:80]
         tts = gTTS(text=clean_text, lang='hi', slow=False)
         tts.save("response.mp3")
         with open("response.mp3", "rb") as f:
@@ -54,6 +53,7 @@ def text_to_speech(text):
     except:
         pass
 
+# Initialize session structures safely
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_name" not in st.session_state:
@@ -62,6 +62,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "last_processed_audio" not in st.session_state:
+    st.session_state.last_processed_audio = None
 
 # STEP 1: Secure Login Portal
 if not st.session_state.logged_in:
@@ -97,6 +99,7 @@ else:
                 first_msg = st.session_state.messages[0]["content"][:20] + "..."
                 st.session_state.chat_history.append(first_msg)
             st.session_state.messages = []
+            st.session_state.last_processed_audio = None
             st.rerun()
             
         for past_chat in st.session_state.chat_history:
@@ -119,11 +122,13 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
+    # Render Active Logs
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
     uploaded_file = st.file_uploader("📷 Add to prompt:", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
+    image = None
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
         st.image(image, caption="Attached Media File", width=220)
@@ -132,20 +137,27 @@ else:
     audio_value = st.audio_input("Record your question...")
 
     user_query = ""
+    
+    # 1. Check typing field first
     if type_input := st.chat_input("Ask Aarambh AI..."):
         user_query = type_input
+        
+    # 2. Check mic transcription block with safety state checks
     elif audio_value is not None:
-        with st.spinner("Processing Alliance Audio..."):
-            try:
-                audio_data = audio_value.read()
-                audio_part = types.Part.from_bytes(data=audio_data, mime_type="audio/wav")
-                transcribe_response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=["Convert this voice to text format.", audio_part]
-                )
-                user_query = transcribe_response.text.strip()
-            except Exception as audio_err:
-                st.error(f"⚠️ Audio module cooling down. Please type.")
+        audio_id = audio_value.name if hasattr(audio_value, 'name') else str(len(audio_value.getvalue()))
+        if st.session_state.last_processed_audio != audio_id:
+            with st.spinner("Processing Alliance Audio Speech Engine..."):
+                try:
+                    audio_data = audio_value.read()
+                    audio_part = types.Part.from_bytes(data=audio_data, mime_type="audio/wav")
+                    transcribe_response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=["Convert this voice to plain text format.", audio_part]
+                    )
+                    user_query = transcribe_response.text.strip()
+                    st.session_state.last_processed_audio = audio_id
+                except Exception:
+                    st.error("⚠️ Audio channel busy. Please type.")
 
     if user_query:
         with st.chat_message("user"):
@@ -153,9 +165,9 @@ else:
         st.session_state.messages.append({"role": "user", "content": user_query})
         
         try:
-            # 💡 SMART MEMORY CONTROL: Google ko sirf current prompt aur instruction bhej rahe hain quota bachane ke liye
+            # Smart token block - only current payload
             contents_payload = [user_query]
-            if uploaded_file is not None:
+            if image is not None:
                 contents_payload.append(image)
                 
             with st.chat_message("assistant"):
@@ -168,13 +180,17 @@ else:
                         )
                     )
                     st.write(response.text)
-                    text_to_speech(response.text)
+                    generate_and_play_audio(response.text)
                     
             st.session_state.messages.append({"role": "assistant", "content": response.text})
-            time.sleep(1) # Extra safety delay to reset free tier limits
+            time.sleep(1)
+            st.rerun()
             
         except Exception as e:
             with st.chat_message("assistant"):
-                st.warning("⚠️ Alliance Engine cooling down. Please wait 3 seconds and retry.")
+                st.warning("⚠️ Alliance Engine cooling down. Reconnecting in 3 seconds...")
+                time.sleep(3)
+                st.rerun()
 
     st.markdown('<div class="ad-banner">📈 Advertisement: Grow Your Business with Alliance Group Digital Assets</div>', unsafe_allow_html=True)
+    
