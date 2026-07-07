@@ -21,8 +21,8 @@ st.markdown("""
     .sub-title { text-align: center; font-size: 1.8rem; font-weight: 800; color: #1e3a8a !important; margin-top: 0px; margin-bottom: 25px; }
     .tagline { text-align: center; color: #64748b !important; font-size: 1rem; max-width: 550px; margin: 0 auto 35px auto; line-height: 1.5; }
     
-    /* Core Action Buttons */
-    .stButton>button { background-color: #0066ff !important; color: white !important; font-size: 1.1rem !important; font-weight: 700 !important; border-radius: 14px !important; padding: 14px !important; border: none !important; width: 100% !important; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3); transition: 0.3s; }
+    /* Core Action Big Blue Button */
+    .stButton>button { background-color: #0066ff !important; color: white !important; font-size: 1.2rem !important; font-weight: 700 !important; border-radius: 14px !important; padding: 14px !important; border: none !important; width: 100% !important; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3); transition: 0.3s; margin-top: 10px; }
     .stButton>button:hover { background-color: #0052cc !important; transform: translateY(-1px); }
     
     /* Result Section Box */
@@ -56,65 +56,78 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# Initialize session states for stable processing
+if 'info_dict' not in st.session_state:
+    st.session_state.info_dict = None
+if 'last_url' not in st.session_state:
+    st.session_state.last_url = ""
+
 # 5. Live Link Parser Input Box
 video_url = st.text_input("", placeholder="Please paste the video link or URL here...", label_visibility="collapsed")
 
-if video_url:
-    st.info("⚡ Aarambh Engine Processing... Fetching available formats and qualities...")
+# Reset data if URL changes
+if video_url != st.session_state.last_url:
+    st.session_state.info_dict = None
+    st.session_state.last_url = video_url
+
+# Big Blue Download Button exactly below the link input box
+download_click = st.button("🚀 Download Video")
+
+# Process when button is clicked or if it's already processed for this URL
+if (download_click or st.session_state.info_dict) and video_url:
     
-    # Original stable format selector config (Brings back standard mp4 stream parsing)
-    ydl_opts = {
-        'format': 'best',
-        'quiet': True,
-        'no_warnings': True,
-        'ignoreerrors': True,
-    }
-    
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(video_url, download=False)
+    if st.session_state.info_dict is None:
+        with st.spinner("⚡ Aarambh Engine Processing... Fetching available formats and qualities..."):
+            ydl_opts = {
+                'format': 'best',
+                'quiet': True,
+                'no_warnings': True,
+                'ignoreerrors': True,
+            }
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    st.session_state.info_dict = ydl.extract_info(video_url, download=False)
+            except Exception:
+                st.error("⚠️ Unable to parse this link. Make sure the link is correct or public.")
+
+    # Render results if info_dict is active
+    if st.session_state.info_dict:
+        info_dict = st.session_state.info_dict
+        video_title = info_dict.get('title', 'Aarambh_Media_Stream')
+        formats = info_dict.get('formats', [])
+        
+        st.success(f"🎥 **Video Found:** {video_title[:60]}...")
+        
+        st.markdown("<div class='download-card'>", unsafe_allow_html=True)
+        st.subheader("Select Quality to Download:")
+        
+        valid_formats = []
+        for f in formats:
+            if f.get('url') and (f.get('ext') == 'mp4' or 'video' in str(f.get('format_note')).lower()):
+                resolution = f.get('format_note', 'Standard Quality')
+                ext = f.get('ext', 'mp4')
+                download_link = f.get('url')
+                
+                label = f"{resolution} ({ext.upper()})"
+                if label not in [x['label'] for x in valid_formats]:
+                    valid_formats.append({'label': label, 'url': download_link})
+        
+        # Original dropdown selector layout
+        if valid_formats:
+            options = [x['label'] for x in valid_formats]
+            choice = st.selectbox("Choose Resolution:", options)
             
-            if info_dict is None:
-                st.error("⚠️ Stream error. Connection block or link might be private/restricted.")
+            selected_url = next(x['url'] for x in valid_formats if x['label'] == choice)
+            
+            st.markdown(f'<a href="{selected_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">🚀 Click Here to Download / Open Video</button></a>', unsafe_allow_html=True)
+        else:
+            direct_url = info_dict.get('url')
+            if direct_url:
+                st.markdown(f'<a href="{direct_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer;">🚀 Download Best Quality Available</button></a>', unsafe_allow_html=True)
             else:
-                video_title = info_dict.get('title', 'Aarambh_Media_Stream')
-                formats = info_dict.get('formats', [])
+                st.error("Could not parse direct download streams. Please try another link.")
                 
-                st.success(f"🎥 **Video Found:** {video_title[:60]}...")
-                
-                st.markdown("<div class='download-card'>", unsafe_allow_html=True)
-                st.subheader("Select Quality to Download:")
-                
-                valid_formats = []
-                for f in formats:
-                    if f.get('url') and (f.get('ext') == 'mp4' or 'video' in str(f.get('format_note')).lower()):
-                        resolution = f.get('format_note', 'Standard Quality')
-                        ext = f.get('ext', 'mp4')
-                        download_link = f.get('url')
-                        
-                        label = f"{resolution} ({ext.upper()})"
-                        if label not in [x['label'] for x in valid_formats]:
-                            valid_formats.append({'label': label, 'url': download_link})
-                
-                # Reverting back to original clean Dropdown selector layout
-                if valid_formats:
-                    options = [x['label'] for x in valid_formats]
-                    choice = st.selectbox("Choose Resolution:", options)
-                    
-                    selected_url = next(x['url'] for x in valid_formats if x['label'] == choice)
-                    
-                    st.markdown(f'<a href="{selected_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">🚀 Click Here to Download / Open Video</button></a>', unsafe_allow_html=True)
-                else:
-                    direct_url = info_dict.get('url')
-                    if direct_url:
-                        st.markdown(f'<a href="{direct_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer;">🚀 Download Best Quality Available</button></a>', unsafe_allow_html=True)
-                    else:
-                        st.error("Could not parse direct download streams. Please try another link.")
-                        
-                st.markdown("</div>", unsafe_allow_html=True)
-                
-    except Exception:
-        st.error("⚠️ Unable to parse this link. Make sure the link is correct or public.")
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # 6. Platforms Supported List Info
 st.markdown("<div class='support-text'>Supports YouTube, TikTok, X (Twitter), Instagram, Facebook, and other popular sites worldwide.</div>", unsafe_allow_html=True)
