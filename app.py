@@ -1,156 +1,81 @@
 import os
 import streamlit as st
 import requests
-import json
-import base64
-from PIL import Image
 
-# 1. Page Configuration
-st.set_page_config(page_title="Aarambh AI", page_icon="🚀", layout="centered")
+# 1. System Setups
+st.set_page_config(page_title="Gemini Core Engine", layout="centered")
 
-# 2. Premium UI Styling Layer
-st.markdown("""
-    <style>
-    .login-container { text-align: center; padding: 40px; background-color: #F8F9FA; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 50px; }
-    .greeting-text { font-size: 38px; font-weight: 500; color: #1F1F1F; margin-bottom: 2px; font-family: sans-serif; }
-    .subtitle-text { font-size: 32px; font-weight: 400; color: #757575; margin-bottom: 30px; font-family: sans-serif; }
-    .suggestion-btn {
-        display: inline-block; background-color: #F0F4F9; border-radius: 20px; 
-        padding: 10px 20px; margin: 5px; font-size: 15px; color: #1F1F1F; 
-        font-family: sans-serif; font-weight: 500;
-    }
-    .alliance-badge { font-size: 13px; color: #9E9E9E; text-align: center; margin-top: -10px; margin-bottom: 20px; }
-    </style>
-""", unsafe_allow_html=True)
-
-# 3. Pulling API Key from Secrets
+# 2. Extract API Key safely from Streamlit Secrets
 API_KEY = st.secrets.get("GEMINI_API_KEY", "").strip()
 
-# 4. Strict Executive Branding Rules
+# 3. Core Identity Rule
 system_instruction = (
-    "Aapka naam 'Aarambh AI' hai. Aap exclusive 'Alliance Special Apple' architecture par chalte hain. "
-    "Aapko normal conversation mein khud se baar-baar owner ka naam nahi lena hai. "
-    "Lekin, JAB BHI koi user aapse ye pooche ki 'aapko kisne banaya hai' ya aapke owner/creator kaun hain, "
-    "tab aapko poore samman ke saath batana hai ki: 'Mujhe Alliance Group ki team ne milkar banaya hai aur Alliance Group ke CEO & Founder Mr. Arnav Partap Singh hain.' "
-    "Kisi bhi haal mein 'Google' ya 'Gemini' ka naam bahaar nahi aana chahiye."
+    "Aapka naam Aarambh AI hai. "
+    "JAB BHI koi user aapse ye pooche ki 'aapko kisne banaya hai' ya aapke owner/creator kaun hain, "
+    "tab aapko poore samman ke saath batana hai ki: 'Mujhe Alliance Group ki team ne milkar banaya hai aur Alliance Group ke CEO & Founder Mr. Arnav Partap Singh hain.'"
 )
 
-# 5. Session State Initializations
+# 4. State Management (Memory Structure)
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_name" not in st.session_state:
     st.session_state.user_name = ""
 if "messages" not in st.session_state:
     st.session_state.messages = []
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
 
-# --- STEP 1: Secure Login Gate ---
+# --- STEP 1: Secure Login / Signup Access Control ---
 if not st.session_state.logged_in:
-    st.markdown('<div class="login-container">', unsafe_allow_html=True)
-    st.image("https://img.icons8.com/color/96/google-logo.png", width=60)
-    st.markdown("### Sign in with Google Account")
-    st.caption("Aarambh AI Secure Alliance Protocol Gate")
+    st.subheader("Login / Sign Up")
     
-    email_input = st.text_input("Enter your Google Email ID:", placeholder="example@gmail.com")
-    name_input = st.text_input("Enter your Full Name:", placeholder="Your Name")
+    with st.form("auth_form"):
+        email = st.text_input("Email Address:", placeholder="name@example.com")
+        name = st.text_input("User Name:", placeholder="Your Name")
+        submit = st.form_submit_button("Access Engine")
+        
+        if submit:
+            if email.strip() and name.strip():
+                st.session_state.user_name = name.strip()
+                st.session_state.logged_in = True
+                st.rerun()
+            else:
+                st.error("Please fill all fields.")
+    st.stop()
+
+# --- STEP 2: Pure Chat Interface (Unlimited Data Stream) ---
+st.title("Gemini Console")
+
+# Render active timeline history
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.write(msg["content"])
+
+# Core Chat Input Layer (Accepts global languages automatically)
+if user_input := st.chat_input("Message Gemini..."):
+    with st.chat_message("user"):
+        st.write(user_input)
+    st.session_state.messages.append({"role": "user", "content": user_input})
     
-    if st.button("🚀 Secure Login", use_container_width=True):
-        if email_input.strip() and name_input.strip():
-            st.session_state.user_name = name_input.strip()
-            st.session_state.logged_in = True
-            st.rerun()
-        else:
-            st.error("⚠️ Kripya Email aur Naam dono sahi se bharein!")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# --- STEP 2: Main Application Interface (REST Core) ---
-else:
-    # Sidebar Setup
-    with st.sidebar:
-        st.markdown(f"### 👑 Alliance Portal")
-        st.success(f"User: **{st.session_state.user_name}**")
-        st.write("---")
-        st.markdown("### 🕒 Chat History")
-        
-        if st.button("🆕 New Chat", use_container_width=True):
-            if len(st.session_state.messages) > 0:
-                first_msg = st.session_state.messages[0]["content"][:20] + "..."
-                st.session_state.chat_history.append(first_msg)
-            st.session_state.messages = []
-            st.rerun()
+    # Direct REST API endpoint target used by Google internal apps
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+    headers = {"Content-Type": "application/json"}
+    
+    # Direct payload transfer
+    payload = {
+        "contents": [{"parts": [{"text": user_input}]}],
+        "systemInstruction": {"parts": [{"text": system_instruction}]}
+    }
+    
+    with st.chat_message("assistant"):
+        try:
+            # Post request execution
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response_json = response.json()
             
-        for past_chat in st.session_state.chat_history:
-            st.markdown(f"💬 {past_chat}")
-
-    # Welcome Dashboard
-    if len(st.session_state.messages) == 0:
-        st.markdown(f'<div class="greeting-text">Hi {st.session_state.user_name}</div>', unsafe_allow_html=True)
-        st.markdown('<div class="subtitle-text">Where should we start?</div>', unsafe_allow_html=True)
-        st.markdown('<div class="alliance-badge">Alliance Special Apple Engine Connected</div>', unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div style='margin-bottom: 25px; text-align: center;'>
-            <span class='suggestion-btn'>🖼️ Create image</span>
-            <span class='suggestion-btn'>🏏 Explore IPL Fan Zone</span>
-            <span class='suggestion-btn'>📚 Help me learn</span>
-            <span class='suggestion-btn'>✨ Boost my day</span>
-            <span class='suggestion-btn'>📝 Write anything</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Render Active Logs
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
-
-    # 📷 Photo Input Panel
-    uploaded_file = st.file_uploader("📷 Add image to prompt:", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
-    image_bytes = None
-    if uploaded_file is not None:
-        image_bytes = uploaded_file.read()
-        st.image(image_bytes, caption="Attached Media File", width=220)
-
-    # Core Text Chat Input Box
-    if user_query := st.chat_input("Ask Aarambh AI..."):
-        with st.chat_message("user"):
-            st.write(user_query)
-        st.session_state.messages.append({"role": "user", "content": user_query})
-        
-        # Exact Endpoint setup matching your curl header logic
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
-        headers = {
-            "Content-Type": "application/json",
-            "X-goog-api-key": API_KEY
-        }
-        
-        # Parts compilation
-        parts_payload = [{"text": user_query}]
-        if image_bytes is not None:
-            encoded_img = base64.b64encode(image_bytes).decode("utf-8")
-            parts_payload.append({
-                "inline_data": {
-                    "mime_type": uploaded_file.type,
-                    "data": encoded_img
-                }
-            })
+            # Extract content text block safely
+            ai_response = response_json['candidates'][0]['content']['parts'][0]['text']
+            st.write(ai_response)
+            st.session_state.messages.append({"role": "assistant", "content": ai_response})
             
-        json_data = {
-            "contents": [{"parts": parts_payload}],
-            "systemInstruction": {"parts": [{"text": system_instruction}]}
-        }
-        
-        with st.chat_message("assistant"):
-            with st.spinner(""):
-                try:
-                    # Posting direct raw request
-                    response = requests.post(url, headers=headers, json=json_data)
-                    response_json = response.json()
-                    
-                    # Parsing response safely
-                    ai_reply = response_json['candidates'][0]['content']['parts'][0]['text']
-                    st.write(ai_reply)
-                    st.session_state.messages.append({"role": "assistant", "content": ai_reply})
-                except Exception:
-                    pass
-        st.rerun()
+        except Exception:
+            # Safeguard catch blocks - strictly prevents app crash if api token drops
+            st.error("Engine pipeline encounter. Please re-send your message.")
