@@ -4,9 +4,11 @@ import yt_dlp
 # 1. Page Config Setup
 st.set_page_config(page_title="Aarambh Video Downloader", page_icon="☁️", layout="centered")
 
-# Google AdSense Main Verification Script Code (Required for Verification)
+# Google AdSense Meta Tag Verification (Direct UI Injection)
 st.markdown("""
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4750406725791226" crossorigin="anonymous"></script>
+<head>
+    <meta name="google-adsense-account" content="ca-pub-4760406725791226">
+</head>
 """, unsafe_allow_html=True)
 
 # 2. Premium SnapWC Blue/White Theme UI Style
@@ -52,11 +54,11 @@ st.markdown("<div class='main-title'>Video, Thumbnails &</div>", unsafe_allow_ht
 st.markdown("<div class='sub-title'>Subtitles</div>", unsafe_allow_html=True)
 st.markdown("<div class='tagline'>Download videos, Shorts, subtitles, transcripts and thumbnails online in HD quality from any website across the internet network.</div>", unsafe_allow_html=True)
 
-# ─── GOOGLE ADSENSE UPPER BANNER SLOT (With Real Pub ID) ───
+# ─── GOOGLE ADSENSE UPPER BANNER SLOT ───
 st.markdown("""
 <div class='ad-wrapper'>
     <p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0;'>Advertisement</p>
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4750406725791226" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4760406725791226" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
     <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
 </div>
 """, unsafe_allow_html=True)
@@ -137,11 +139,11 @@ if (download_click or st.session_state.info_dict) and video_url:
 # 6. Platforms Supported List Info
 st.markdown("<div class='support-text'>Supports YouTube, TikTok, X (Twitter), Instagram, Facebook, and other popular sites worldwide.</div>", unsafe_allow_html=True)
 
-# ─── GOOGLE ADSENSE LOWER BANNER SLOT (With Real Pub ID) ───
+# ─── GOOGLE ADSENSE LOWER BANNER SLOT ───
 st.markdown("""
 <div class='ad-wrapper' style='margin-top: 40px;'>
     <p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0;'>Advertisement</p>
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4750406725791226" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4760406725791226" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
     <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
 </div>
 """, unsafe_allow_html=True)
@@ -149,3 +151,4 @@ st.markdown("""
 st.write("")
 st.write("")
 st.markdown("<p style='text-align: center; color: #94a3b8 !important; font-size: 0.8rem;'>Alliance Secure Tool Network • Powered by Aarambh Engine v1.5</p>", unsafe_allow_html=True)
+        
