@@ -1,13 +1,14 @@
 import os
 import streamlit as st
-from google import genai
-from google.genai import types
+import requests
+import json
+import base64
 from PIL import Image
 
-# 1. Page Configuration & Layout
+# 1. Page Configuration
 st.set_page_config(page_title="Aarambh AI", page_icon="🚀", layout="centered")
 
-# 2. Premium Professional UI Styling
+# 2. Premium UI Styling Layer
 st.markdown("""
     <style>
     .login-container { text-align: center; padding: 40px; background-color: #F8F9FA; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 50px; }
@@ -22,13 +23,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Secure API Key Loading
-if "GEMINI_API_KEY" in st.secrets:
-    os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
-elif "GOOGLE_API_KEY" in st.secrets:
-    os.environ["GEMINI_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
-
-client = genai.Client()
+# 3. Pulling API Key from Secrets
+API_KEY = st.secrets.get("GEMINI_API_KEY", "").strip()
 
 # 4. Strict Executive Branding Rules
 system_instruction = (
@@ -39,7 +35,7 @@ system_instruction = (
     "Kisi bhi haal mein 'Google' ya 'Gemini' ka naam bahaar nahi aana chahiye."
 )
 
-# 5. Persistent State Memory
+# 5. Session State Initializations
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_name" not in st.session_state:
@@ -48,10 +44,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-if "last_audio_data" not in st.session_state:
-    st.session_state.last_audio_data = None
 
-# --- STEP 1: Secure Login / Signup Portal ---
+# --- STEP 1: Secure Login Gate ---
 if not st.session_state.logged_in:
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     st.image("https://img.icons8.com/color/96/google-logo.png", width=60)
@@ -70,9 +64,9 @@ if not st.session_state.logged_in:
             st.error("⚠️ Kripya Email aur Naam dono sahi se bharein!")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- STEP 2: Main Application Portal (Unlimited Chat System) ---
+# --- STEP 2: Main Application Interface (REST Core) ---
 else:
-    # Sidebar
+    # Sidebar Setup
     with st.sidebar:
         st.markdown(f"### 👑 Alliance Portal")
         st.success(f"User: **{st.session_state.user_name}**")
@@ -84,13 +78,12 @@ else:
                 first_msg = st.session_state.messages[0]["content"][:20] + "..."
                 st.session_state.chat_history.append(first_msg)
             st.session_state.messages = []
-            st.session_state.last_audio_data = None
             st.rerun()
             
         for past_chat in st.session_state.chat_history:
             st.markdown(f"💬 {past_chat}")
 
-    # Welcome Screen
+    # Welcome Dashboard
     if len(st.session_state.messages) == 0:
         st.markdown(f'<div class="greeting-text">Hi {st.session_state.user_name}</div>', unsafe_allow_html=True)
         st.markdown('<div class="subtitle-text">Where should we start?</div>', unsafe_allow_html=True)
@@ -106,66 +99,58 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-    # Render History Logs Neatly
+    # Render Active Logs
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
     # 📷 Photo Input Panel
     uploaded_file = st.file_uploader("📷 Add image to prompt:", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
-    image_payload = None
+    image_bytes = None
     if uploaded_file is not None:
-        image_payload = Image.open(uploaded_file)
-        st.image(image_payload, caption="Attached Image Asset", width=220)
+        image_bytes = uploaded_file.read()
+        st.image(image_bytes, caption="Attached Media File", width=220)
 
-    # 🎤 Mic Voice Input Component
-    st.markdown("##### 🎤 Speak your prompt (Global Audio Engine):")
-    audio_value = st.audio_input("Record your question...")
-
-    user_query = ""
-
-    # Check text input field
-    if text_input := st.chat_input("Ask Aarambh AI..."):
-        user_query = text_input
-
-    # Check mic audio safely
-    elif audio_value is not None:
-        audio_bytes = audio_value.read()
-        if st.session_state.last_audio_data != audio_bytes:
-            with st.spinner("Processing Voice..."):
-                try:
-                    audio_part = types.Part.from_bytes(data=audio_bytes, mime_type="audio/wav")
-                    transcribe_response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=["Convert this audio directly into standard text format.", audio_part]
-                    )
-                    user_query = transcribe_response.text.strip()
-                    st.session_state.last_audio_data = audio_bytes
-                except Exception:
-                    pass
-
-    # Core Execution Loop
-    if user_query:
+    # Core Text Chat Input Box
+    if user_query := st.chat_input("Ask Aarambh AI..."):
         with st.chat_message("user"):
             st.write(user_query)
         st.session_state.messages.append({"role": "user", "content": user_query})
         
-        contents_payload = [user_query]
-        if image_payload is not None:
-            contents_payload.append(image_payload)
+        # Exact Endpoint setup matching your curl header logic
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+        headers = {
+            "Content-Type": "application/json",
+            "X-goog-api-key": API_KEY
+        }
+        
+        # Parts compilation
+        parts_payload = [{"text": user_query}]
+        if image_bytes is not None:
+            encoded_img = base64.b64encode(image_bytes).decode("utf-8")
+            parts_payload.append({
+                "inline_data": {
+                    "mime_type": uploaded_file.type,
+                    "data": encoded_img
+                }
+            })
             
+        json_data = {
+            "contents": [{"parts": parts_payload}],
+            "systemInstruction": {"parts": [{"text": system_instruction}]}
+        }
+        
         with st.chat_message("assistant"):
             with st.spinner(""):
                 try:
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=contents_payload,
-                        config=types.GenerateContentConfig(
-                            system_instruction=system_instruction
-                        )
-                    )
-                    st.write(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
+                    # Posting direct raw request
+                    response = requests.post(url, headers=headers, json=json_data)
+                    response_json = response.json()
+                    
+                    # Parsing response safely
+                    ai_reply = response_json['candidates'][0]['content']['parts'][0]['text']
+                    st.write(ai_reply)
+                    st.session_state.messages.append({"role": "assistant", "content": ai_reply})
                 except Exception:
                     pass
         st.rerun()
