@@ -1,5 +1,19 @@
 import streamlit as st
 import time
+import google.generativeai as genai
+from PIL import Image
+
+# 1. API SETUP (Asli Engine Connection)
+API_KEY = "AQ.Ab8RN6JhSvkPbTtvYdMeVEpvKOXhTEuFOFkVcAfXWOYA6150hg"
+genai.configure(api_key=API_KEY)
+
+system_instruction = (
+    "Aapka naam Aarambh AI hai. Aap exclusive Alliance Special Apple architecture par chalte hain. "
+    "JAB BHI koi user aapse ye pooche ki 'aapko kisne banaya hai' ya aapke owner/creator kaun hain, "
+    "tab aapko poore samman ke saath batana hai ki: 'Mujhe Alliance Group ki team ne milkar banaya hai aur Alliance Group ke CEO & Founder Mr. Arnav Partap Singh hain.' "
+    "Kisi bhi haal mein Google ya Gemini ka naam bahaar nahi aana chahiye."
+)
+model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=system_instruction)
 
 # पेज की शुरुआती सेटिंग्स
 st.set_page_config(
@@ -18,7 +32,7 @@ st.markdown("""
     .stButton>button:hover { background-color: #1d4ed8; border: none; }
     .welcome-text { color: #10b981; font-weight: 500; font-size: 0.85rem; margin-top: -10px; margin-bottom: 20px; }
     .chat-bubble-user { background-color: #2563eb; padding: 12px 16px; border-radius: 16px 16px 0px 16px; margin: 5px 0; text-align: right; display: inline-block; float: right; clear: both; max-width: 80%; }
-    .chat-bubble-ai { background-color: #1f2937; padding: 12px 16px; border-radius: 16px 16px 16px 0px; margin: 5px 0; text-align: left; display: inline-block; float: left; clear: both; border: 1px solid #374151; max-width: 80%; }
+    .chat-bubble-ai { background-color: #1f2937; padding: 12px 16px; border-radius: 16px 16px 16px 0px; margin: 5px 0; text-align: left; display: inline-block; float: left; clear: both; border: 1px solid #374151; max-width: 80%; line-height: 1.5; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -29,6 +43,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "username" not in st.session_state:
     st.session_state.username = "User"
+if "chat_session" not in st.session_state:
+    st.session_state.chat_session = model.start_chat(history=[])
 
 # ---- LOGIN SCREEN ----
 if not st.session_state.logged_in:
@@ -39,7 +55,7 @@ if not st.session_state.logged_in:
         st.write("---")
         u_name = st.text_input("आपका नाम / Your Name", value="Arnav Partap Singh")
         
-        if st.button("🔴 Continue with Google Email"):
+        if st.button("🔴 Continue with Secure Network"):
             if u_name.strip() != "":
                 st.session_state.username = u_name
             st.session_state.logged_in = True
@@ -48,9 +64,9 @@ if not st.session_state.logged_in:
 else:
     # ---- MAIN CHAT INTERFACE ----
     st.markdown("<h1 style='margin-bottom:0px;'>Aarambh Engine</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p class='welcome-text'>Welcome {st.session_state.username}</p>", unsafe_allow_html=True)
+    st.markdown(f"<p class='welcome-text'>Welcome back, {st.session_state.username}</p>", unsafe_allow_html=True)
     
-    # चैट हिस्ट्री दिखाना
+    # चैट हिस्ट्री दिखाना (UI Bubbles)
     for msg in st.session_state.messages:
         if msg["role"] == "user":
             st.markdown(f"<div class='chat-bubble-user'>{msg['content']}</div>", unsafe_allow_html=True)
@@ -63,34 +79,34 @@ else:
     # Control Panel (Sidebar)
     with st.sidebar:
         st.markdown("### Aarambh Control Panel")
-        uploaded_file = st.file_uploader("Upload Image/Media (+)", type=["png", "jpg", "jpeg", "mp4"])
+        uploaded_file = st.file_uploader("Upload Image (+)", type=["png", "jpg", "jpeg"])
         if uploaded_file is not None:
             st.success(f"Selected: {uploaded_file.name}")
         
         st.info("🎙️ Voice mic feature works natively via your keyboard's speech-to-text input inside the text box.")
 
-    # Chat Input
+    # Chat Input & Real AI Logic
     if user_query := st.chat_input("Ask Aarambh Engine anything..."):
         
+        # User message UI update
         st.session_state.messages.append({"role": "user", "content": user_query})
-        st.markdown(f"<div class='chat-bubble-user'>{user_query}</div>", unsafe_allow_html=True)
         
-        clean_query = user_query.lower()
+        # API Connection
         ai_response = ""
-        
-        # Identity Filter
-        if any(x in clean_query for x in ["kisne banaya", "who created", "who made you", "creator", "owner", "founder"]):
-            ai_response = "मुझे **Alliance Group** के **AI Technology Team** ने बनाया है। और Alliance Group के CEO & Founder **Arnav Partap Singh** हैं।"
-        
-        # Anti-Gemini Branding
-        elif any(x in clean_query for x in ["gemini", "google"]):
-            ai_response = "मैं **Aarambh AI** हूँ, जिसे **Aarambh Engine** द्वारा संचालित किया जाता है। मेरा संबंध किसी अन्य ब्रांड से नहीं है।"
-            
-        else:
-            ai_response = f"यह 'Aarambh Engine' का सुरक्षित रिस्पॉन्स है। अनलिमिटेड चैट मोड चालू है। आपने पूछा: '{user_query}'"
+        try:
+            # Agar sidebar se photo upload ki gayi hai
+            if uploaded_file is not None:
+                img = Image.open(uploaded_file)
+                response = st.session_state.chat_session.send_message([user_query, img])
+            else:
+                # Sirf text message
+                response = st.session_state.chat_session.send_message(user_query)
+                
+            ai_response = response.text
+        except Exception as e:
+            ai_response = "⚠️ Engine Network Busy. Please retry your message."
 
-        time.sleep(0.5)
+        # AI response UI update
         st.session_state.messages.append({"role": "assistant", "content": ai_response})
-        st.markdown(f"<div class='chat-bubble-ai'>{ai_response}</div>", unsafe_allow_html=True)
         st.rerun()
-        
+    
