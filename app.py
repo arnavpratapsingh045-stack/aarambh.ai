@@ -4,9 +4,8 @@ import requests
 # 1. Page Configuration (Strictly Aarambh AI Branding)
 st.set_page_config(page_title="Aarambh AI", layout="centered")
 
-# 2. Direct API Key Injection (Bina kisi Secrets ke lafda ke, direct connection)
-# Jo key aapne curl mein dikhayi thi, use yahan direct paste kar diya hai
-API_KEY = "AQ.Ab8RN6JFM_Gzqtw1yv9Qihte-de5HR2q-F5wHWHqXCIPTVD73g"
+# 2. Live API Key Injection (Aapki nayi key direct lock kar di hai)
+API_KEY = "AQ.Ab8RN6JhSvkPbTtvYdMeVEpvKOXhTEuFOFkVcAfXWOYA6150hg"
 
 # 3. Strict Identity Rule
 system_instruction = (
@@ -50,8 +49,8 @@ if prompt := st.chat_input("Ask Aarambh AI..."):
         st.write(prompt)
 
     with st.chat_message("assistant"):
-        # Direct Endpoint call matching your curl command structure
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+        # Stable endpoint that matches your new key structure perfectly
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
         headers = {"Content-Type": "application/json"}
         
         payload = {
@@ -70,4 +69,4 @@ if prompt := st.chat_input("Ask Aarambh AI..."):
             st.session_state.messages.append({"role": "assistant", "content": output_text})
         except Exception:
             st.error("Engine temporary busy. Please try resending your message.")
-                                     
+            
