@@ -4,10 +4,10 @@ from google import genai
 from google.genai import types
 from PIL import Image
 
-# 1. Page Configuration (Full Premium Screen)
+# 1. Page Configuration (Premium Center Layout)
 st.set_page_config(page_title="Aarambh AI", page_icon="🚀", layout="centered")
 
-# 2. Premium Gemini UI Custom Styling
+# 2. Custom Premium UI Design Layer
 st.markdown("""
     <style>
     .login-container { text-align: center; padding: 40px; background-color: #F8F9FA; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 50px; }
@@ -22,7 +22,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. API Secrets Engine Mapping
+# 3. Secure API Connection Mapping
 if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 elif "GOOGLE_API_KEY" in st.secrets:
@@ -30,7 +30,7 @@ elif "GOOGLE_API_KEY" in st.secrets:
 
 client = genai.Client()
 
-# 4. Strict Founder Branding Rules
+# 4. Strict Executive Branding Rules
 system_instruction = (
     "Aapka naam 'Aarambh AI' hai. Aap exclusive 'Alliance Special Apple' architecture par chalte hain. "
     "Aapko normal conversation mein khud se baar-baar owner ka naam nahi lena hai. "
@@ -39,7 +39,7 @@ system_instruction = (
     "Kisi bhi haal mein 'Google' ya 'Gemini' ka naam bahaar nahi aana chahiye."
 )
 
-# 5. Session Memory Initialization
+# 5. Persistent Session Memory Structure (For Unlimited Chat)
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "user_name" not in st.session_state:
@@ -49,7 +49,7 @@ if "messages" not in st.session_state:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# --- STEP 1: Secure Login Portal ---
+# --- STEP 1: Secure Login Gate ---
 if not st.session_state.logged_in:
     st.markdown('<div class="login-container">', unsafe_allow_html=True)
     st.image("https://img.icons8.com/color/96/google-logo.png", width=60)
@@ -68,9 +68,9 @@ if not st.session_state.logged_in:
             st.error("⚠️ Kripya Email aur Naam dono sahi se bharein!")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- STEP 2: Main Application Interface ---
+# --- STEP 2: Main Application Portal ---
 else:
-    # Sidebar Setup for Chat History and Admin Info
+    # Sidebar Navigation & Logs
     with st.sidebar:
         st.markdown(f"### 👑 Alliance Portal")
         st.success(f"User: **{st.session_state.user_name}**")
@@ -87,7 +87,7 @@ else:
         for past_chat in st.session_state.chat_history:
             st.markdown(f"💬 {past_chat}")
 
-    # Welcome Screen Display (Pichle Welcome Screen Ke Mutabik Same-to-Same)
+    # Welcome Premium Dashboard Screen
     if len(st.session_state.messages) == 0:
         st.markdown(f'<div class="greeting-text">Hi {st.session_state.user_name}</div>', unsafe_allow_html=True)
         st.markdown('<div class="subtitle-text">Where should we start?</div>', unsafe_allow_html=True)
@@ -103,43 +103,43 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-    # Render Chat Message Timeline Logs
+    # Clean rendering of historical text blocks
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    # 📷 Photo + Media Uploader Layout
+    # Photo Upload Panel
     uploaded_file = st.file_uploader("📷 Add image to prompt:", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
     image_payload = None
     if uploaded_file is not None:
         image_payload = Image.open(uploaded_file)
         st.image(image_payload, caption="Attached Image Asset", width=220)
 
-    # Core Text Chat Input Box
+    # Core Infinite Chat Component (Safe State Flow)
     if user_query := st.chat_input("Ask Aarambh AI..."):
-        # User ka input dikhayein aur save karein
+        # Instant UI reflection
         with st.chat_message("user"):
             st.write(user_query)
         st.session_state.messages.append({"role": "user", "content": user_query})
         
-        # Build contents array intelligently
+        # Build contents dynamically
         contents_array = [user_query]
         if image_payload is not None:
             contents_array.append(image_payload)
             
-        # Assistant ka reply generate aur display karein
+        # Assistant Request & Display Block (No rerun triggers to prevent loops)
         with st.chat_message("assistant"):
-            try:
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=contents_array,
-                    config=types.GenerateContentConfig(
-                        system_instruction=system_instruction
+            with st.spinner(""):
+                try:
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=contents_array,
+                        config=types.GenerateContentConfig(
+                            system_instruction=system_instruction
+                        )
                     )
-                )
-                st.write(response.text)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
-                st.rerun()
-            except Exception as e:
-                # Page safe execution - loop control
-                st.rerun()
+                    st.write(response.text)
+                    st.session_state.messages.append({"role": "assistant", "content": response.text})
+                except Exception:
+                    st.write("⚠️ Alliance Engine structural backup. Please resend the message.")
+    
