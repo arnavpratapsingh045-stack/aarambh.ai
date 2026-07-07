@@ -1,104 +1,77 @@
 import streamlit as st
-import google.generativeai as genai
+import yt_dlp
+import os
 
-# 1. API Configuration & Secure Hardlocked Key
-API_KEY = "AQ.Ab8RN6JhSvkPbTtvYdMeVEpvKOXhTEuFOFkVcAfXWOYA6150hg"
-genai.configure(api_key=API_KEY)
+# 1. Page Config & Premium Dark Mode Style (Aarambh Branding)
+st.set_page_config(page_title="Aarambh Video Downloader", page_icon="📥", layout="centered")
 
-# Strict Identity Rules
-system_instruction = (
-    "Aapka naam Aarambh AI hai. Aap exclusive Alliance Special Apple architecture par chalte hain. "
-    "JAB BHI koi user aapse ye pooche ki 'aapko kisne banaya hai' ya aapke owner/creator kaun hain, "
-    "tab aapko poore samman ke saath batana hai ki: 'Mujhe Alliance Group ki team ne milkar banaya hai aur Alliance Group ke CEO & Founder Mr. Arnav Partap Singh hain.' "
-    "Kisi bhi haal mein Google ya Gemini ka naam bahaar nahi aana chahiye."
-)
-
-# Initialize Model Engine Safely
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash", 
-    system_instruction=system_instruction
-)
-
-# 2. पेज की शुरुआती सेटिंग्स
-st.set_page_config(
-    page_title="Aarambh AI", 
-    page_icon="🤖", 
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
-
-# Custom CSS ताकि UI मॉडर्न और क्लीन दिखे
 st.markdown("""
 <style>
     .stApp { background-color: #0b0f19; color: #f3f4f6; }
-    h1 { color: #3b82f6 !important; font-weight: 800; letter-spacing: 0.05em; }
-    .stButton>button { background-color: #2563eb; color: white; border-radius: 12px; font-weight: 600; width: 100%; border: none; padding: 0.5rem; transition: 0.3s; }
-    .stButton>button:hover { background-color: #1d4ed8; border: none; }
-    .welcome-text { color: #10b981; font-weight: 500; font-size: 0.85rem; margin-top: -10px; margin-bottom: 20px; }
-    
-    /* Native Chat Alignment fixes to prevent styling breaking during streams */
-    .stChatMessage { background-color: transparent !important; border: none !important; }
-    .chat-bubble-user { background-color: #2563eb; padding: 12px 16px; border-radius: 16px 16px 0px 16px; color: white; text-align: left; display: inline-block; max-width: 100%; }
-    .chat-bubble-ai { background-color: #1f2937; padding: 12px 16px; border-radius: 16px 16px 16px 0px; color: #f3f4f6; text-align: left; display: inline-block; border: 1px solid #374151; max-width: 100%; line-height: 1.5; }
+    h1 { color: #3b82f6 !important; font-weight: 800; text-align: center; }
+    .download-card { background-color: #1f2937; padding: 20px; border-radius: 12px; border: 1px solid #374151; margin-top: 20px; }
+    .stButton>button { background-color: #10b981; color: white; border-radius: 8px; width: 100%; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
-# Session State को इनिशियलाइज करना
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "username" not in st.session_state:
-    st.session_state.username = "User"
-if "chat_session" not in st.session_state:
-    st.session_state.chat_session = model.start_chat(history=[])
+st.title("📥 Aarambh Video Downloader")
+st.markdown("<p style='text-align: center; color: #9ca3af;'>Paste any link (YT, FB, Insta, Browser) • Download High Quality</p>", unsafe_allow_html=True)
 
-# ---- LOGIN SCREEN ----
-if not st.session_state.logged_in:
-    st.markdown("<h1 style='text-align: center;'>AARAMBH AI</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #9ca3af; font-size: 0.9rem;'>The Next Generation AI Platform</p>", unsafe_allow_html=True)
+# 2. Input Layer
+video_url = st.text_input("Enter Video Link here:", placeholder="https://...")
+
+if video_url:
+    st.info("🔄 Processing link... Fetching available formats and qualities...")
     
-    with st.container():
-        st.write("---")
-        u_name = st.text_input("आपका नाम / Your Name", value="Arnav Partap Singh")
-        
-        if st.button("🔴 Continue with Alliance Secure Network"):
-            if u_name.strip() != "":
-                st.session_state.username = u_name
-            st.session_state.logged_in = True
-            st.rerun()
-            
-else:
-    # ---- MAIN CHAT INTERFACE ----
-    st.markdown("<h1 style='margin-bottom:0px;'>Aarambh Engine</h1>", unsafe_allow_html=True)
-    st.markdown(f"<p class='welcome-text'>Welcome back, {st.session_state.username}</p>", unsafe_allow_html=True)
+    # yt-dlp configurations
+    ydl_opts = {
+        'format': 'best',
+        'quiet': True,
+        'no_warnings': True,
+    }
     
-    # चैट हिस्ट्री दिखाना (Render directly from the official active chat session history)
-    for msg in st.session_state.chat_session.history:
-        role_class = "chat-bubble-user" if msg.role == "user" else "chat-bubble-ai"
-        with st.chat_message(msg.role):
-            st.markdown(f"<div class='{role_class}'>{msg.parts[0].text}</div>", unsafe_allow_html=True)
-
-    # Control Panel (Sidebar)
-    with st.sidebar:
-        st.markdown("### Aarambh Control Panel")
-        st.info("🎙️ Voice mic feature works natively via your keyboard's speech-to-text input inside the text box.")
-        if st.button("🗑️ Clear Chat History", use_container_width=True):
-            st.session_state.chat_session = model.start_chat(history=[])
-            st.rerun()
-
-    # Chat Input & Core Official Engine Logic (No loops, zero crash)
-    if user_query := st.chat_input("Ask Aarambh Engine anything..."):
-        
-        # Display user message instantly
-        with st.chat_message("user"):
-            st.markdown(f"<div class='chat-bubble-user'>{user_query}</div>", unsafe_allow_html=True)
-        
-        # Process and Stream AI output natively
-        with st.chat_message("assistant"):
-            try:
-                response = st.session_state.chat_session.send_message(user_query)
-                st.markdown(f"<div class='chat-bubble-ai'>{response.text}</div>", unsafe_allow_html=True)
-            except Exception:
-                st.markdown("<div class='chat-bubble-ai'>⚠️ Connection temporary reset. Please resend your message.</div>", unsafe_allow_html=True)
-        
-        st.rerun()
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(video_url, download=False)
+            video_title = info_dict.get('title', 'Aarambh_Download')
+            formats = info_dict.get('formats', [])
             
+        st.success(f"🎥 **Video Found:** {video_title}")
+        
+        st.markdown("<div class='download-card'>", unsafe_allow_html=True)
+        st.subheader("Select Quality to Download:")
+        
+        valid_formats = []
+        for f in formats:
+            if f.get('url') and (f.get('ext') == 'mp4' or 'video' in str(f.get('format_note'))):
+                resolution = f.get('format_note', 'Standard Quality')
+                ext = f.get('ext', 'mp4')
+                download_link = f.get('url')
+                
+                label = f"{resolution} ({ext.upper()})"
+                if label not in [x['label'] for x in valid_formats]:
+                    valid_formats.append({'label': label, 'url': download_link})
+        
+        if valid_formats:
+            options = [x['label'] for x in valid_formats]
+            choice = st.selectbox("Choose Resolution:", options)
+            
+            selected_url = next(x['url'] for x in valid_formats if x['label'] == choice)
+            
+            st.markdown(f'<a href="{selected_url}" target="_blank"><button style="background-color: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer;">🚀 Click Here to Download / Open Video</button></a>', unsafe_allow_html=True)
+        else:
+            direct_url = info_dict.get('url')
+            if direct_url:
+                st.markdown(f'<a href="{direct_url}" target="_blank"><button style="background-color: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer;">🚀 Download Best Quality Available</button></a>', unsafe_allow_html=True)
+            else:
+                st.error("Could not parse direct download streams. Please try another link.")
+                
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+    except Exception as e:
+        st.error(f"⚠️ Unable to parse this link. Make sure the link is correct or public.")
+
+st.write("")
+st.write("")
+st.markdown("<p style='text-align: center; color: #4b5563; font-size: 0.8rem;'>Alliance Secure Downloader Engine v1.0</p>", unsafe_allow_html=True)
+    
