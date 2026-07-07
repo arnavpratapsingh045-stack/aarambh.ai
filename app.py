@@ -1,81 +1,73 @@
-import os
 import streamlit as st
 import requests
 
-# 1. System Setups
-st.set_page_config(page_title="Gemini Core Engine", layout="centered")
+# 1. Page Configuration (Strictly Aarambh AI Branding)
+st.set_page_config(page_title="Aarambh AI", layout="centered")
 
-# 2. Extract API Key safely from Streamlit Secrets
-API_KEY = st.secrets.get("GEMINI_API_KEY", "").strip()
+# 2. Direct API Key Injection (Bina kisi Secrets ke lafda ke, direct connection)
+# Jo key aapne curl mein dikhayi thi, use yahan direct paste kar diya hai
+API_KEY = "AQ.Ab8RN6JFM_Gzqtw1yv9Qihte-de5HR2q-F5wHWHqXCIPTVD73g"
 
-# 3. Core Identity Rule
+# 3. Strict Identity Rule
 system_instruction = (
-    "Aapka naam Aarambh AI hai. "
+    "Aapka naam Aarambh AI hai. Aap exclusive Alliance Special Apple architecture par chalte hain. "
     "JAB BHI koi user aapse ye pooche ki 'aapko kisne banaya hai' ya aapke owner/creator kaun hain, "
-    "tab aapko poore samman ke saath batana hai ki: 'Mujhe Alliance Group ki team ne milkar banaya hai aur Alliance Group ke CEO & Founder Mr. Arnav Partap Singh hain.'"
+    "tab aapko poore samman ke saath batana hai ki: 'Mujhe Alliance Group ki team ne milkar banaya hai aur Alliance Group ke CEO & Founder Mr. Arnav Partap Singh hain.' "
+    "Kisi bhi haal mein Google ya Gemini ka naam bahaar nahi aana chahiye."
 )
 
-# 4. State Management (Memory Structure)
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "user_name" not in st.session_state:
-    st.session_state.user_name = ""
+# 4. Initialize History (For Unlimited Chat)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- STEP 1: Secure Login / Signup Access Control ---
-if not st.session_state.logged_in:
-    st.subheader("Login / Sign Up")
-    
-    with st.form("auth_form"):
-        email = st.text_input("Email Address:", placeholder="name@example.com")
-        name = st.text_input("User Name:", placeholder="Your Name")
-        submit = st.form_submit_button("Access Engine")
-        
-        if submit:
-            if email.strip() and name.strip():
+# 5. UI: Login & Signup Gate
+if "user_name" not in st.session_state:
+    st.subheader("Sign In / Access Portal")
+    with st.form("login_form"):
+        email = st.text_input("Enter your Email:")
+        name = st.text_input("Enter your Name:")
+        if st.form_submit_button("Access Engine"):
+            if name.strip() and email.strip():
                 st.session_state.user_name = name.strip()
-                st.session_state.logged_in = True
                 st.rerun()
             else:
-                st.error("Please fill all fields.")
+                st.error("Kripya dono fields ko bharein.")
     st.stop()
 
-# --- STEP 2: Pure Chat Interface (Unlimited Data Stream) ---
-st.title("Gemini Console")
+# 6. Main Chat Console (Duniya ki har bhasha supported)
+st.title("Aarambh AI")
+st.write(f"Welcome back, **{st.session_state.user_name}** | Alliance Secure Network")
 
-# Render active timeline history
+# History Display Layer
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
-# Core Chat Input Layer (Accepts global languages automatically)
-if user_input := st.chat_input("Message Gemini..."):
+# Chat Input & Core REST Logic (Purely text-based, zero crash)
+if prompt := st.chat_input("Ask Aarambh AI..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
-        st.write(user_input)
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    
-    # Direct REST API endpoint target used by Google internal apps
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
-    headers = {"Content-Type": "application/json"}
-    
-    # Direct payload transfer
-    payload = {
-        "contents": [{"parts": [{"text": user_input}]}],
-        "systemInstruction": {"parts": [{"text": system_instruction}]}
-    }
-    
+        st.write(prompt)
+
     with st.chat_message("assistant"):
+        # Direct Endpoint call matching your curl command structure
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+        headers = {"Content-Type": "application/json"}
+        
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "systemInstruction": {"parts": [{"text": system_instruction}]}
+        }
+        
         try:
             # Post request execution
             response = requests.post(url, headers=headers, json=payload, timeout=30)
             response_json = response.json()
             
             # Extract content text block safely
-            ai_response = response_json['candidates'][0]['content']['parts'][0]['text']
-            st.write(ai_response)
-            st.session_state.messages.append({"role": "assistant", "content": ai_response})
-            
+            output_text = response_json['candidates'][0]['content']['parts'][0]['text']
+            st.write(output_text)
+            st.session_state.messages.append({"role": "assistant", "content": output_text})
         except Exception:
-            # Safeguard catch blocks - strictly prevents app crash if api token drops
-            st.error("Engine pipeline encounter. Please re-send your message.")
+            st.error("Engine temporary busy. Please try resending your message.")
+                                     
