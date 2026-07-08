@@ -4,13 +4,6 @@ import yt_dlp
 # 1. Page Config Setup
 st.set_page_config(page_title="Aarambh Video Downloader", page_icon="☁️", layout="centered")
 
-# Google AdSense Meta Tag Verification (Direct UI Injection)
-st.markdown("""
-<head>
-    <meta name="google-adsense-account" content="ca-pub-4760406725791226">
-</head>
-""", unsafe_allow_html=True)
-
 # 2. Premium SnapWC Blue/White Theme UI Style
 st.markdown("""
 <style>
@@ -35,7 +28,6 @@ st.markdown("""
     /* Result Section Box */
     .download-card { background-color: #ffffff; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.04); margin-top: 25px; }
     .support-text { text-align: center; font-size: 0.88rem; color: #64748b !important; margin-top: 20px; line-height: 1.6; }
-    .ad-wrapper { text-align: center; margin: 25px 0; padding: 10px; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; min-height: 90px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -54,14 +46,24 @@ st.markdown("<div class='main-title'>Video, Thumbnails &</div>", unsafe_allow_ht
 st.markdown("<div class='sub-title'>Subtitles</div>", unsafe_allow_html=True)
 st.markdown("<div class='tagline'>Download videos, Shorts, subtitles, transcripts and thumbnails online in HD quality from any website across the internet network.</div>", unsafe_allow_html=True)
 
-# ─── GOOGLE ADSENSE UPPER BANNER SLOT ───
-st.markdown("""
-<div class='ad-wrapper'>
-    <p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0;'>Advertisement</p>
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4760406725791226" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
+# ─── 📦 ADSTERRA UPPER BANNER AD SLOT ───
+st.components.v1.html("""
+<div style="text-align:center;">
+    <p style="font-size: 11px; color: #94a3b8; margin: 0 0 5px 0; font-family:sans-serif;">Advertisement</p>
+    
+    <script>
+      atOptions = {
+        'key' : '23fdccf319da0565052ba62bf2ed087e',
+        'format' : 'iframe',
+        'height' : 90,
+        'width' : 728,
+        'params' : {}
+      };
+    </script>
+    <script src="https://www.highperformanceformat.com/23fdccf319da0565052ba62bf2ed087e/invoke.js"></script>
+
 </div>
-""", unsafe_allow_html=True)
+""", height=120)
 
 # Initialize session states for stable processing
 if 'info_dict' not in st.session_state:
@@ -85,8 +87,9 @@ if (download_click or st.session_state.info_dict) and video_url:
     
     if st.session_state.info_dict is None:
         with st.spinner("⚡ Aarambh Engine Processing... Fetching available formats and qualities..."):
+            # AUDIO FIX: Force yt-dlp to only fetch formats that have pre-merged audio and video
             ydl_opts = {
-                'format': 'best',
+                'format': 'ext=mp4/best',  
                 'quiet': True,
                 'no_warnings': True,
                 'ignoreerrors': True,
@@ -110,8 +113,9 @@ if (download_click or st.session_state.info_dict) and video_url:
         
         valid_formats = []
         for f in formats:
+            # Filtering pre-merged audio+video files for proper audio playback
             if f.get('url') and (f.get('ext') == 'mp4' or 'video' in str(f.get('format_note')).lower()):
-                resolution = f.get('format_note', 'Standard Quality')
+                resolution = f.get('format_note', 'Standard Quality with Audio')
                 ext = f.get('ext', 'mp4')
                 download_link = f.get('url')
                 
@@ -119,11 +123,9 @@ if (download_click or st.session_state.info_dict) and video_url:
                 if label not in [x['label'] for x in valid_formats]:
                     valid_formats.append({'label': label, 'url': download_link})
         
-        # Original dropdown selector layout
         if valid_formats:
             options = [x['label'] for x in valid_formats]
             choice = st.selectbox("Choose Resolution:", options)
-            
             selected_url = next(x['url'] for x in valid_formats if x['label'] == choice)
             
             st.markdown(f'<a href="{selected_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">🚀 Click Here to Download / Open Video</button></a>', unsafe_allow_html=True)
@@ -139,16 +141,24 @@ if (download_click or st.session_state.info_dict) and video_url:
 # 6. Platforms Supported List Info
 st.markdown("<div class='support-text'>Supports YouTube, TikTok, X (Twitter), Instagram, Facebook, and other popular sites worldwide.</div>", unsafe_allow_html=True)
 
-# ─── GOOGLE ADSENSE LOWER BANNER SLOT ───
-st.markdown("""
-<div class='ad-wrapper' style='margin-top: 40px;'>
-    <p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0;'>Advertisement</p>
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4760406725791226" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins>
-    <script> (adsbygoogle = window.adsbygoogle || []).push({}); </script>
+# ─── 📦 ADSTERRA LOWER BANNER AD SLOT ───
+st.components.v1.html("""
+<div style="text-align:center; margin-top:20px;">
+    <p style="font-size: 11px; color: #94a3b8; margin: 0 0 5px 0; font-family:sans-serif;">Advertisement</p>
+    
+    <script>
+      atOptions = {
+        'key' : '23fdccf319da0565052ba62bf2ed087e',
+        'format' : 'iframe',
+        'height' : 90,
+        'width' : 728,
+        'params' : {}
+      };
+    </script>
+    <script src="https://www.highperformanceformat.com/23fdccf319da0565052ba62bf2ed087e/invoke.js"></script>
+
 </div>
-""", unsafe_allow_html=True)
+""", height=120)
 
 st.write("")
-st.write("")
 st.markdown("<p style='text-align: center; color: #94a3b8 !important; font-size: 0.8rem;'>Alliance Secure Tool Network • Powered by Aarambh Engine v1.5</p>", unsafe_allow_html=True)
-        
