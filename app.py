@@ -41,4 +41,117 @@ st.markdown("""
     <div class='brand-logo'>
         <span class='cloud-icon'>☁️</span> Aarambh Video Downloader
     </div>
-    <div style='color: #475569
+    <div style='color: #475569; font-weight: 600; font-size: 0.95rem; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; background: white;'>🌐 English ▾</div>
+</div>
+""", unsafe_allow_html=True)
+
+# 4. Main Banner Headings
+st.markdown("<div class='main-title'>Video, Thumbnails &</div>", unsafe_allow_html=True)
+st.markdown("<div class='sub-title'>Subtitles</div>", unsafe_allow_html=True)
+st.markdown("<div class='tagline'>Download videos, Shorts, subtitles, transcripts and thumbnails online in HD quality from any website across the internet network.</div>", unsafe_allow_html=True)
+
+# ─── ADSTERRA UPPER BANNER SLOT ───
+st.markdown("<div class='ad-wrapper'><p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0 0 5px 0;'>Advertisement</p>", unsafe_allow_html=True)
+st.components.v1.html("""
+    <script type="text/javascript">
+      atOptions = { 'key' : '7b617b2fc4e84542dd4b3a49fb75bff4', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+    </script>
+    <script type="text/javascript" src="https://www.highperformanceformat.com/7b617b2fc4e84542dd4b3a49fb75bff4/invoke.js"></script>
+""", height=95, scrolling=False)
+st.markdown("</div>", unsafe_allow_html=True)
+
+# Initialize session states
+if 'info_dict' not in st.session_state:
+    st.session_state.info_dict = None
+if 'last_url' not in st.session_state:
+    st.session_state.last_url = ""
+
+# 5. Live Link Parser Input Box
+video_url = st.text_input("", placeholder="Please paste the video link or URL here...", label_visibility="collapsed")
+
+if video_url != st.session_state.last_url:
+    st.session_state.info_dict = None
+    st.session_state.last_url = video_url
+
+# Download Button directly underneath with matching width
+download_click = st.button("🚀 Download Video")
+
+if (download_click or st.session_state.info_dict) and video_url:
+    if st.session_state.info_dict is None:
+        with st.spinner("⚡ Processing Stream... Fetching metadata and synchronized audio formats..."):
+            ydl_opts = {
+                'format': 'best',
+                'quiet': True,
+                'no_warnings': True,
+                'ignoreerrors': True,
+            }
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    st.session_state.info_dict = ydl.extract_info(video_url, download=False)
+            except Exception:
+                st.error("⚠️ Unable to parse this link. Make sure the link is correct or public.")
+
+    if st.session_state.info_dict:
+        info_dict = st.session_state.info_dict
+        video_title = info_dict.get('title', 'Aarambh_Media_Stream')
+        formats = info_dict.get('formats', [])
+        thumbnail_url = info_dict.get('thumbnail') or info_dict.get('thumbnails', [{}])[-1].get('url')
+        tags = info_dict.get('tags', []) or info_dict.get('categories', [])
+        
+        st.markdown("<div class='download-card'>", unsafe_allow_html=True)
+        
+        # Title and Tags Display
+        st.markdown(f"### 🎥 {video_title}")
+        if tags:
+            hashtags_str = " ".join([f"<span class='hash-tag'>#{tag.replace(' ', '')}</span>" for tag in tags[:5]])
+            st.markdown(f"<div>{hashtags_str}</div>", unsafe_allow_html=True)
+        st.write(" ")
+        
+        # Thumbnail Render
+        if thumbnail_url:
+            st.image(thumbnail_url, use_container_width=True, caption="Video Thumbnail Preview")
+            
+        st.write("---")
+        st.subheader("Select Quality (Includes Progressive Sound-Sync):")
+        
+        valid_formats = []
+        for f in formats:
+            if f.get('url') and ('video' in str(f.get('format_note')).lower() or f.get('ext') == 'mp4' or f.get('vcodec') != 'none'):
+                resolution = f.get('format_note', 'Standard Quality')
+                ext = f.get('ext', 'mp4')
+                download_link = f.get('url')
+                
+                label = f"{resolution} ({ext.upper()}) - Audio Speaker Active"
+                if label not in [x['label'] for x in valid_formats]:
+                    valid_formats.append({'label': label, 'url': download_link})
+        
+        if valid_formats:
+            options = [x['label'] for x in valid_formats]
+            choice = st.selectbox("Choose Resolution:", options)
+            selected_url = next(x['url'] for x in valid_formats if x['label'] == choice)
+            
+            st.markdown(f'<a href="{selected_url}" target="_blank" download="{video_title}.mp4"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">📥 Click to Download / Open with Sound</button></a>', unsafe_allow_html=True)
+        else:
+            direct_url = info_dict.get('url')
+            if direct_url:
+                st.markdown(f'<a href="{direct_url}" target="_blank" download="Video_Stream.mp4"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer;">📥 Download Best Available Quality</button></a>', unsafe_allow_html=True)
+            else:
+                st.error("Could not parse direct download streams. Please try another link.")
+                
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# 6. Platforms Supported List Info
+st.markdown("<div class='support-text'>Supports YouTube, TikTok, X (Twitter), Instagram, Facebook, and other popular sites worldwide.</div>", unsafe_allow_html=True)
+
+# ─── ADSTERRA LOWER BANNER SLOT ───
+st.markdown("<div class='ad-wrapper' style='margin-top: 40px;'><p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0 0 5px 0;'>Advertisement</p>", unsafe_allow_html=True)
+st.components.v1.html("""
+    <script type="text/javascript">
+      atOptions = { 'key' : '7b617b2fc4e84542dd4b3a49fb75bff4', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+    </script>
+    <script type="text/javascript" src="https://www.highperformanceformat.com/7b617b2fc4e84542dd4b3a49fb75bff4/invoke.js"></script>
+""", height=95, scrolling=False)
+st.markdown("</div>", unsafe_allow_html=True)
+
+st.write("")
+st.markdown("<p style='text-align: center; color: #94a3b8 !important; font-size: 0.8rem;'>Alliance Secure Tool Network • Powered by Aarambh Engine v1.5</p>", unsafe_allow_html=True)
