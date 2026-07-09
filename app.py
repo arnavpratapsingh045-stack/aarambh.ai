@@ -3,10 +3,10 @@ import yt_dlp
 import random
 import time
 
-# 1. Page Config Setup
+# 1. Page Configuration Setup (Centered Grid)
 st.set_page_config(page_title="Aarambh Video Downloader", page_icon="☁️", layout="centered")
 
-# 2. Premium SnapWC Blue/White Theme UI Style
+# 2. Match Width Stylesheet (Search Bar aur Button Ka Size Ek Jaisa Karne Ke Liye)
 st.markdown("""
 <style>
     .stApp { background: linear-gradient(180deg, #ffffff 0%, #f4f7fe 100%); color: #1e293b; }
@@ -18,24 +18,24 @@ st.markdown("""
     .brand-logo { display: flex; align-items: center; gap: 10px; font-size: 1.6rem; font-weight: 800; color: #1d4ed8 !important; }
     .cloud-icon { font-size: 1.8rem; color: #2563eb; }
     
-    /* Typography Style */
+    /* Main Typography */
     .main-title { text-align: center; font-size: 2.3rem; font-weight: 900; background: linear-gradient(90deg, #1d4ed8 0%, #ea580c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
     .sub-title { text-align: center; font-size: 1.8rem; font-weight: 800; color: #1e3a8a !important; margin-top: 0px; margin-bottom: 25px; }
     .tagline { text-align: center; color: #64748b !important; font-size: 1rem; max-width: 550px; margin: 0 auto 35px auto; line-height: 1.5; }
     
-    /* Search Bar & Button Alignment Fix */
-    .stButton>button { background-color: #0066ff !important; color: white !important; font-size: 1.2rem !important; font-weight: 700 !important; border-radius: 14px !important; padding: 14px !important; border: none !important; width: 100% !important; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3); transition: 0.3s; margin-top: 12px; }
+    /* Dynamic Button Layout - Width is hard-matched to 100% of container input */
+    .stButton>button { background-color: #0066ff !important; color: white !important; font-size: 1.2rem !important; font-weight: 700 !important; border-radius: 14px !important; padding: 14px !important; border: none !important; width: 100% !important; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3); transition: 0.3s; margin-top: 10px; }
     .stButton>button:hover { background-color: #0052cc !important; transform: translateY(-1px); }
     
-    /* Result Section Box */
+    /* Metadata Output Block */
     .download-card { background-color: #ffffff; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.04); margin-top: 25px; }
     .support-text { text-align: center; font-size: 0.88rem; color: #64748b !important; margin-top: 20px; line-height: 1.6; }
     .ad-wrapper { text-align: center; margin: 25px 0; padding: 10px; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; min-height: 90px; overflow:hidden; }
-    .hash-tag { color: #2563eb !important; font-weight: 600; margin-right: 5px; }
+    .hash-tag { color: #2563eb !important; font-weight: 600; margin-right: 8px; font-size: 0.95rem; }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Top Navigation Header Bar
+# 3. Branding Header Layout
 st.markdown("""
 <div class='header-container'>
     <div class='brand-logo'>
@@ -45,12 +45,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 4. Main Banner Headings
+# 4. Marketing Hero Section
 st.markdown("<div class='main-title'>Video, Thumbnails &</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-title'>Subtitles</div>", unsafe_allow_html=True)
 st.markdown("<div class='tagline'>Download videos, Shorts, subtitles, transcripts and thumbnails online in HD quality from any website across the internet network.</div>", unsafe_allow_html=True)
 
-# ─── ADSTERRA UPPER BANNER SLOT ───
+# ─── ADSTERRA UPPER REVENUE FRAME ───
 st.markdown("<div class='ad-wrapper'><p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0 0 5px 0;'>Advertisement</p>", unsafe_allow_html=True)
 st.components.v1.html("""
     <script type="text/javascript">
@@ -60,27 +60,29 @@ st.components.v1.html("""
 """, height=95, scrolling=False)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Initialize session states
+# Track memory matrices across operations
 if 'info_dict' not in st.session_state:
     st.session_state.info_dict = None
 if 'last_url' not in st.session_state:
     st.session_state.last_url = ""
 
-# 5. Live Link Parser Input Box
+# 5. Core Interface Input Box
 video_url = st.text_input("", placeholder="Please paste the video link or URL here...", label_visibility="collapsed")
 
 if video_url != st.session_state.last_url:
     st.session_state.info_dict = None
     st.session_state.last_url = video_url
 
-# Download Button directly underneath with matching width
+# Download Button - Formatted to exactly mirror the search bar above
 download_click = st.button("🚀 Download Video")
 
+# Triggers processing state upon user interaction
 if (download_click or st.session_state.info_dict) and video_url:
     if st.session_state.info_dict is None:
+        # LIVE PROCESSING NOTIFICATION TRIGGER
         with st.spinner("⚡ Processing Stream... Fetching metadata and synchronized audio formats..."):
             ydl_opts = {
-                'format': 'best',
+                'format': 'best', # Grabs standard multi-channel integrated progressive tracks for sound activation
                 'quiet': True,
                 'no_warnings': True,
                 'ignoreerrors': True,
@@ -100,28 +102,28 @@ if (download_click or st.session_state.info_dict) and video_url:
         
         st.markdown("<div class='download-card'>", unsafe_allow_html=True)
         
-        # Title and Tags Display
+        # Output Title and Custom Tag Formats
         st.markdown(f"### 🎥 {video_title}")
         if tags:
             hashtags_str = " ".join([f"<span class='hash-tag'>#{tag.replace(' ', '')}</span>" for tag in tags[:5]])
             st.markdown(f"<div>{hashtags_str}</div>", unsafe_allow_html=True)
         st.write(" ")
         
-        # Thumbnail Render
+        # Video Thumbnail Preview Container
         if thumbnail_url:
-            st.image(thumbnail_url, use_container_width=True, caption="Video Thumbnail Preview")
+            st.image(thumbnail_url, use_container_width=True, caption="Verified Source Video Thumbnail")
             
         st.write("---")
-        st.subheader("Select Quality (Includes Progressive Sound-Sync):")
+        st.subheader("Select Quality (All links verified with active audio tracks):")
         
         valid_formats = []
         for f in formats:
             if f.get('url') and ('video' in str(f.get('format_note')).lower() or f.get('ext') == 'mp4' or f.get('vcodec') != 'none'):
-                resolution = f.get('format_note', 'Standard Quality')
+                resolution = f.get('format_note', 'Standard Dynamic Resolution')
                 ext = f.get('ext', 'mp4')
                 download_link = f.get('url')
                 
-                label = f"{resolution} ({ext.upper()}) - Audio Speaker Active"
+                label = f"{resolution} ({ext.upper()}) - Speaker Output On"
                 if label not in [x['label'] for x in valid_formats]:
                     valid_formats.append({'label': label, 'url': download_link})
         
@@ -130,20 +132,21 @@ if (download_click or st.session_state.info_dict) and video_url:
             choice = st.selectbox("Choose Resolution:", options)
             selected_url = next(x['url'] for x in valid_formats if x['label'] == choice)
             
-            st.markdown(f'<a href="{selected_url}" target="_blank" download="{video_title}.mp4"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">📥 Click to Download / Open with Sound</button></a>', unsafe_allow_html=True)
+            # Master Download Trigger Blue Button
+            st.markdown(f'<a href="{selected_url}" target="_blank" download="{video_title}.mp4"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">📥 Click to Download / Open Video with Sound</button></a>', unsafe_allow_html=True)
         else:
             direct_url = info_dict.get('url')
             if direct_url:
-                st.markdown(f'<a href="{direct_url}" target="_blank" download="Video_Stream.mp4"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer;">📥 Download Best Available Quality</button></a>', unsafe_allow_html=True)
+                st.markdown(f'<a href="{direct_url}" target="_blank" download="Aarambh_Video.mp4"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer;">📥 Download Best Available Quality</button></a>', unsafe_allow_html=True)
             else:
                 st.error("Could not parse direct download streams. Please try another link.")
                 
         st.markdown("</div>", unsafe_allow_html=True)
 
-# 6. Platforms Supported List Info
+# 6. Metadata Information
 st.markdown("<div class='support-text'>Supports YouTube, TikTok, X (Twitter), Instagram, Facebook, and other popular sites worldwide.</div>", unsafe_allow_html=True)
 
-# ─── ADSTERRA LOWER BANNER SLOT ───
+# ─── ADSTERRA LOWER REVENUE FRAME ───
 st.markdown("<div class='ad-wrapper' style='margin-top: 40px;'><p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0 0 5px 0;'>Advertisement</p>", unsafe_allow_html=True)
 st.components.v1.html("""
     <script type="text/javascript">
