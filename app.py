@@ -23,14 +23,15 @@ st.markdown("""
     .sub-title { text-align: center; font-size: 1.8rem; font-weight: 800; color: #1e3a8a !important; margin-top: 0px; margin-bottom: 25px; }
     .tagline { text-align: center; color: #64748b !important; font-size: 1rem; max-width: 550px; margin: 0 auto 35px auto; line-height: 1.5; }
     
-    /* Core Action Big Blue Button */
-    .stButton>button { background-color: #0066ff !important; color: white !important; font-size: 1.2rem !important; font-weight: 700 !important; border-radius: 14px !important; padding: 14px !important; border: none !important; width: 100% !important; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3); transition: 0.3s; margin-top: 10px; }
+    /* Search Bar & Button Alignment Fix */
+    .stButton>button { background-color: #0066ff !important; color: white !important; font-size: 1.2rem !important; font-weight: 700 !important; border-radius: 14px !important; padding: 14px !important; border: none !important; width: 100% !important; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3); transition: 0.3s; margin-top: 12px; }
     .stButton>button:hover { background-color: #0052cc !important; transform: translateY(-1px); }
     
     /* Result Section Box */
     .download-card { background-color: #ffffff; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.04); margin-top: 25px; }
     .support-text { text-align: center; font-size: 0.88rem; color: #64748b !important; margin-top: 20px; line-height: 1.6; }
     .ad-wrapper { text-align: center; margin: 25px 0; padding: 10px; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; min-height: 90px; overflow:hidden; }
+    .hash-tag { color: #2563eb !important; font-weight: 600; margin-right: 5px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -40,105 +41,4 @@ st.markdown("""
     <div class='brand-logo'>
         <span class='cloud-icon'>☁️</span> Aarambh Video Downloader
     </div>
-    <div style='color: #475569; font-weight: 600; font-size: 0.95rem; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; background: white;'>🌐 English ▾</div>
-</div>
-""", unsafe_allow_html=True)
-
-# 4. Main Banner Headings
-st.markdown("<div class='main-title'>Video, Thumbnails &</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-title'>Subtitles</div>", unsafe_allow_html=True)
-st.markdown("<div class='tagline'>Download videos, Shorts, subtitles, transcripts and thumbnails online in HD quality from any website across the internet network.</div>", unsafe_allow_html=True)
-
-# ─── FREEZE-PROOF DOLLAR ADSENSE/ADSTERRA UPPER SLOT ───
-st.markdown("<div class='ad-wrapper'><p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0 0 5px 0;'>Advertisement</p>", unsafe_allow_html=True)
-st.components.v1.html("""
-    <script type="text/javascript">
-      atOptions = { 'key' : '7b617b2fc4e84542dd4b3a49fb75bff4', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
-    </script>
-    <script type="text/javascript" src="https://www.highperformanceformat.com/7b617b2fc4e84542dd4b3a49fb75bff4/invoke.js"></script>
-""", height=95, scrolling=False)
-st.markdown("</div>", unsafe_allow_html=True)
-
-# Initialize session states
-if 'info_dict' not in st.session_state:
-    st.session_state.info_dict = None
-if 'last_url' not in st.session_state:
-    st.session_state.last_url = ""
-
-# 5. Live Link Parser Input Box
-video_url = st.text_input("", placeholder="Please paste the video link or URL here...", label_visibility="collapsed")
-
-if video_url != st.session_state.last_url:
-    st.session_state.info_dict = None
-    st.session_state.last_url = video_url
-
-download_click = st.button("🚀 Download Video")
-
-if (download_click or st.session_state.info_dict) and video_url:
-    if st.session_state.info_dict is None:
-        with st.spinner("⚡ Aarambh Engine Processing... Fetching available formats and qualities..."):
-            ydl_opts = {
-                'format': 'best',  # Combined format selector rule for sound integration
-                'quiet': True,
-                'no_warnings': True,
-                'ignoreerrors': True,
-            }
-            try:
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    st.session_state.info_dict = ydl.extract_info(video_url, download=False)
-            except Exception:
-                st.error("⚠️ Unable to parse this link. Make sure the link is correct or public.")
-
-    if st.session_state.info_dict:
-        info_dict = st.session_state.info_dict
-        video_title = info_dict.get('title', 'Aarambh_Media_Stream')
-        formats = info_dict.get('formats', [])
-        
-        st.success(f"🎥 **Video Found:** {video_title[:60]}...")
-        
-        st.markdown("<div class='download-card'>", unsafe_allow_html=True)
-        st.subheader("Select Quality to Download:")
-        
-        valid_formats = []
-        for f in formats:
-            # Filters formats that contain video stream data blocks
-            if f.get('url') and ('video' in str(f.get('format_note')).lower() or f.get('ext') == 'mp4' or f.get('vcodec') != 'none'):
-                resolution = f.get('format_note', 'Standard Dynamic Format')
-                ext = f.get('ext', 'mp4')
-                download_link = f.get('url')
-                
-                label = f"{resolution} ({ext.upper()})"
-                if label not in [x['label'] for x in valid_formats]:
-                    valid_formats.append({'label': label, 'url': download_link})
-        
-        if valid_formats:
-            options = [x['label'] for x in valid_formats]
-            choice = st.selectbox("Choose Resolution (Select formats for sound compatibility):", options)
-            selected_url = next(x['url'] for x in valid_formats if x['label'] == choice)
-            
-            st.markdown(f'<a href="{selected_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">🚀 Click Here to Download / Open Video</button></a>', unsafe_allow_html=True)
-        else:
-            direct_url = info_dict.get('url')
-            if direct_url:
-                st.markdown(f'<a href="{direct_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer;">🚀 Download Best Quality Available</button></a>', unsafe_allow_html=True)
-            else:
-                st.error("Could not parse direct download streams. Please try another link.")
-                
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# 6. Platforms Supported List Info
-st.markdown("<div class='support-text'>Supports YouTube, TikTok, X (Twitter), Instagram, Facebook, and other popular sites worldwide.</div>", unsafe_allow_html=True)
-
-# ─── FREEZE-PROOF DOLLAR ADSENSE/ADSTERRA LOWER SLOT ───
-st.markdown("<div class='ad-wrapper' style='margin-top: 40px;'><p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0 0 5px 0;'>Advertisement</p>", unsafe_allow_html=True)
-st.components.v1.html("""
-    <script type="text/javascript">
-      atOptions = { 'key' : '7b617b2fc4e84542dd4b3a49fb75bff4', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
-    </script>
-    <script type="text/javascript" src="https://www.highperformanceformat.com/7b617b2fc4e84542dd4b3a49fb75bff4/invoke.js"></script>
-""", height=95, scrolling=False)
-st.markdown("</div>", unsafe_allow_html=True)
-
-st.write("")
-st.write("")
-st.markdown("<p style='text-align: center; color: #94a3b8 !important; font-size: 0.8rem;'>Alliance Secure Tool Network • Powered by Aarambh Engine v1.5</p>", unsafe_allow_html=True)
+    <div style='color: #475569
