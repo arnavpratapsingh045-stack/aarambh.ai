@@ -1,144 +1,144 @@
 import streamlit as st
+import yt_dlp
 import random
 import time
 
-# 1. Page Configuration Setup
-st.set_page_config(page_title="Free Video Downloader", page_icon="📥", layout="wide")
+# 1. Page Config Setup
+st.set_page_config(page_title="Aarambh Video Downloader", page_icon="☁️", layout="centered")
 
-# 2. Aapka Purana Original Dark UI Theme Stylesheet
+# 2. Premium SnapWC Blue/White Theme UI Style
 st.markdown("""
 <style>
-    .stApp { background-color: #0f172a; color: #f8fafc; }
-    .main-title { text-align: center; font-size: 2.6rem; font-weight: 900; color: #ef4444; margin-top: 10px; margin-bottom: 5px; }
-    .sub-title { text-align: center; font-size: 1.05rem; color: #94a3b8; margin-bottom: 30px; }
-    .video-box { background: #1e293b; border-radius: 12px; padding: 20px; border: 1px solid #334155; margin-bottom: 25px; text-align: center; }
-    .format-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; text-align: center; transition: 0.3s; }
-    .format-card:hover { border-color: #ef4444; }
-    .dl-btn { background-color: #ef4444; color: white !important; font-weight: 700; padding: 12px; width: 100%; border-radius: 8px; display: block; text-decoration: none; margin-top: 15px; text-align: center; transition: 0.2s; }
-    .dl-btn:hover { background-color: #dc2626; }
+    .stApp { background: linear-gradient(180deg, #ffffff 0%, #f4f7fe 100%); color: #1e293b; }
+    div[data-testid="stForm"] { border: none !important; padding: 0 !important; background-color: transparent !important; }
+    p, span, label { color: #475569 !important; font-family: 'Inter', sans-serif; }
+    
+    /* Header Navbar */
+    .header-container { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e2e8f0; margin-bottom: 30px; }
+    .brand-logo { display: flex; align-items: center; gap: 10px; font-size: 1.6rem; font-weight: 800; color: #1d4ed8 !important; }
+    .cloud-icon { font-size: 1.8rem; color: #2563eb; }
+    
+    /* Typography Style */
+    .main-title { text-align: center; font-size: 2.3rem; font-weight: 900; background: linear-gradient(90deg, #1d4ed8 0%, #ea580c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
+    .sub-title { text-align: center; font-size: 1.8rem; font-weight: 800; color: #1e3a8a !important; margin-top: 0px; margin-bottom: 25px; }
+    .tagline { text-align: center; color: #64748b !important; font-size: 1rem; max-width: 550px; margin: 0 auto 35px auto; line-height: 1.5; }
+    
+    /* Core Action Big Blue Button */
+    .stButton>button { background-color: #0066ff !important; color: white !important; font-size: 1.2rem !important; font-weight: 700 !important; border-radius: 14px !important; padding: 14px !important; border: none !important; width: 100% !important; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3); transition: 0.3s; margin-top: 10px; }
+    .stButton>button:hover { background-color: #0052cc !important; transform: translateY(-1px); }
+    
+    /* Result Section Box */
+    .download-card { background-color: #ffffff; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.04); margin-top: 25px; }
+    .support-text { text-align: center; font-size: 0.88rem; color: #64748b !important; margin-top: 20px; line-height: 1.6; }
+    .ad-wrapper { text-align: center; margin: 25px 0; padding: 10px; background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; min-height: 90px; overflow:hidden; }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Adsterra Freeze-Proof Ad Slot (Revenue Generation Box)
-def load_ad_safely():
-    ad_code = """
-    <html>
-    <head><style>body { margin: 0; padding: 0; text-align: center; }</style></head>
-    <body>
-        <script type="text/javascript">
-          atOptions = { 'key' : '7b617b2fc4e84542dd4b3a49fb75bff4', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
-        </script>
-        <script type="text/javascript" src="https://www.highperformanceformat.com/7b617b2fc4e84542dd4b3a49fb75bff4/invoke.js"></script>
-    </body>
-    </html>
-    """
-    st.components.v1.html(ad_code, height=105, scrolling=False)
+# 3. Top Navigation Header Bar
+st.markdown("""
+<div class='header-container'>
+    <div class='brand-logo'>
+        <span class='cloud-icon'>☁️</span> Aarambh Video Downloader
+    </div>
+    <div style='color: #475569; font-weight: 600; font-size: 0.95rem; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 8px; background: white;'>🌐 English ▾</div>
+</div>
+""", unsafe_allow_html=True)
 
-# 4. Audio-Force Fixed Video Component
-def load_unmuted_video_stream():
-    video_html = """
-    <html>
-    <head>
-        <style>
-            body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; border-radius: 10px; overflow: hidden; }
-            video { width: 100%; max-height: 380px; object-fit: contain; }
-        </style>
-    </head>
-    <body>
-        <video id="classic_player" controls autoplay playsinline>
-            <source src="https://rr2---sn-gwpa-25uek.googlevideo.com/videoplayback" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        <script>
-            const vid = document.getElementById('classic_player');
-            vid.muted = false; 
-            vid.volume = 1.0;
-            
-            // User screen par kahin bhi tap karega toh audio policy force bypass ho jayegi
-            window.addEventListener('click', function() {
-                if(vid.muted) {
-                    vid.muted = false;
-                    vid.play();
-                }
-            }, { once: true });
-        </script>
-    </body>
-    </html>
-    """
-    st.components.v1.html(video_html, height=400, scrolling=False)
+# 4. Main Banner Headings
+st.markdown("<div class='main-title'>Video, Thumbnails &</div>", unsafe_allow_html=True)
+st.markdown("<div class='sub-title'>Subtitles</div>", unsafe_allow_html=True)
+st.markdown("<div class='tagline'>Download videos, Shorts, subtitles, transcripts and thumbnails online in HD quality from any website across the internet network.</div>", unsafe_allow_html=True)
 
-# --- MAIN DASHBOARD (NO INTERMEDIATE LOGIN SCREEN) ---
-st.markdown("<div class='main-title'>📥 ONLINE VIDEO DOWNLOADER</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-title'>High-Speed Video & MP3 Extraction Hub</div>", unsafe_allow_html=True)
+# ─── FREEZE-PROOF DOLLAR ADSENSE/ADSTERRA UPPER SLOT ───
+st.markdown("<div class='ad-wrapper'><p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0 0 5px 0;'>Advertisement</p>", unsafe_allow_html=True)
+st.components.v1.html("""
+    <script type="text/javascript">
+      atOptions = { 'key' : '7b617b2fc4e84542dd4b3a49fb75bff4', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+    </script>
+    <script type="text/javascript" src="https://www.highperformanceformat.com/7b617b2fc4e84542dd4b3a49fb75bff4/invoke.js"></script>
+""", height=95, scrolling=False)
+st.markdown("</div>", unsafe_allow_html=True)
 
-# Revenue Ad Live at Top
-load_ad_safely()
-st.write(" ")
+# Initialize session states
+if 'info_dict' not in st.session_state:
+    st.session_state.info_dict = None
+if 'last_url' not in st.session_state:
+    st.session_state.last_url = ""
 
-# Standard Link Fetcher Form Block
-with st.form(key="downloader_core_form", clear_on_submit=False):
-    url_input = st.text_input("", placeholder="Paste video link here and click fetch...", label_visibility="collapsed")
-    run_extraction = st.form_submit_button("⚡ FETCH VIDEO DATA", use_container_width=True)
+# 5. Live Link Parser Input Box
+video_url = st.text_input("", placeholder="Please paste the video link or URL here...", label_visibility="collapsed")
 
-if run_extraction:
-    if not url_input:
-        st.warning("Bhai, pehle video ka URL link paste karo!")
-    else:
-        url_clean = url_input.strip().lower()
+if video_url != st.session_state.last_url:
+    st.session_state.info_dict = None
+    st.session_state.last_url = video_url
+
+download_click = st.button("🚀 Download Video")
+
+if (download_click or st.session_state.info_dict) and video_url:
+    if st.session_state.info_dict is None:
+        with st.spinner("⚡ Aarambh Engine Processing... Fetching available formats and qualities..."):
+            ydl_opts = {
+                'format': 'best',  # Combined format selector rule for sound integration
+                'quiet': True,
+                'no_warnings': True,
+                'ignoreerrors': True,
+            }
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    st.session_state.info_dict = ydl.extract_info(video_url, download=False)
+            except Exception:
+                st.error("⚠️ Unable to parse this link. Make sure the link is correct or public.")
+
+    if st.session_state.info_dict:
+        info_dict = st.session_state.info_dict
+        video_title = info_dict.get('title', 'Aarambh_Media_Stream')
+        formats = info_dict.get('formats', [])
         
-        if not ("http" in url_clean or "www." in url_clean):
-            st.error("🚨 Invalid Format: Please paste a proper video link address.")
+        st.success(f"🎥 **Video Found:** {video_title[:60]}...")
+        
+        st.markdown("<div class='download-card'>", unsafe_allow_html=True)
+        st.subheader("Select Quality to Download:")
+        
+        valid_formats = []
+        for f in formats:
+            # Filters formats that contain video stream data blocks
+            if f.get('url') and ('video' in str(f.get('format_note')).lower() or f.get('ext') == 'mp4' or f.get('vcodec') != 'none'):
+                resolution = f.get('format_note', 'Standard Dynamic Format')
+                ext = f.get('ext', 'mp4')
+                download_link = f.get('url')
+                
+                label = f"{resolution} ({ext.upper()})"
+                if label not in [x['label'] for x in valid_formats]:
+                    valid_formats.append({'label': label, 'url': download_link})
+        
+        if valid_formats:
+            options = [x['label'] for x in valid_formats]
+            choice = st.selectbox("Choose Resolution (Select formats for sound compatibility):", options)
+            selected_url = next(x['url'] for x in valid_formats if x['label'] == choice)
+            
+            st.markdown(f'<a href="{selected_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,255,0.25);">🚀 Click Here to Download / Open Video</button></a>', unsafe_allow_html=True)
         else:
-            with st.spinner("⏳ Extracting download streams from server pool..."):
-                time.sleep(1.0)
-            
-            # 🎬 Video Preview Box with Unmute Driver
-            st.markdown("<div class='video-box'>", unsafe_allow_html=True)
-            st.markdown("<h4 style='margin-top:0; color:#ef4444;'>🎬 Live Stream Preview (Tap/Click to Unmute)</h4>", unsafe_allow_html=True)
-            load_unmuted_video_stream()
-            st.markdown("</div>", unsafe_allow_html=True)
-            
-            # Second Ad break right before download grid for maximum impression clicks
-            load_ad_safely()
-            st.write(" ")
-            
-            # 📥 Download Buttons Multi-Grid System
-            st.markdown("### 📥 Select File Resolution Format")
-            grid_cols = st.columns(3)
-            
-            mock_sizes = [
-                {"quality": "1080p Ultra HD", "size": f"{random.randint(55, 99)} MB"},
-                {"quality": "720p Standard HD", "size": f"{random.randint(25, 54)} MB"},
-                {"quality": "Audio Stream MP3", "size": f"{random.randint(4, 12)} MB"}
-            ]
-            
-            with grid_cols[0]:
-                st.markdown(f"""
-                <div class='format-card'>
-                    <h3 style='margin:0; color:#ef4444;'>{mock_sizes[0]["quality"]}</h3>
-                    <p style='margin:8px 0; color:#94a3b8;'>File Size: <b>{mock_sizes[0]["size"]}</b></p>
-                    <a href='https://rr2---sn-gwpa-25uek.googlevideo.com/videoplayback' target='_blank' class='dl-btn'>Download Video</a>
-                </div>
-                """, unsafe_allow_html=True)
+            direct_url = info_dict.get('url')
+            if direct_url:
+                st.markdown(f'<a href="{direct_url}" target="_blank"><button style="background-color: #0066ff; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer;">🚀 Download Best Quality Available</button></a>', unsafe_allow_html=True)
+            else:
+                st.error("Could not parse direct download streams. Please try another link.")
                 
-            with grid_cols[1]:
-                st.markdown(f"""
-                <div class='format-card'>
-                    <h3 style='margin:0; color:#ef4444;'>{mock_sizes[1]["quality"]}</h3>
-                    <p style='margin:8px 0; color:#94a3b8;'>File Size: <b>{mock_sizes[1]["size"]}</b></p>
-                    <a href='https://rr2---sn-gwpa-25uek.googlevideo.com/videoplayback' target='_blank' class='dl-btn'>Download Video</a>
-                </div>
-                """, unsafe_allow_html=True)
-                
-            with grid_cols[2]:
-                st.markdown(f"""
-                <div class='format-card'>
-                    <h3 style='margin:0; color:#ef4444;'>{mock_sizes[2]["quality"]}</h3>
-                    <p style='margin:8px 0; color:#94a3b8;'>File Size: <b>{mock_sizes[2]["size"]}</b></p>
-                    <a href='https://rr2---sn-gwpa-25uek.googlevideo.com/videoplayback' target='_blank' class='dl-btn'>Download MP3</a>
-                </div>
-                """, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# 6. Platforms Supported List Info
+st.markdown("<div class='support-text'>Supports YouTube, TikTok, X (Twitter), Instagram, Facebook, and other popular sites worldwide.</div>", unsafe_allow_html=True)
+
+# ─── FREEZE-PROOF DOLLAR ADSENSE/ADSTERRA LOWER SLOT ───
+st.markdown("<div class='ad-wrapper' style='margin-top: 40px;'><p style='font-size: 0.75rem; color: #94a3b8 !important; margin: 0 0 5px 0;'>Advertisement</p>", unsafe_allow_html=True)
+st.components.v1.html("""
+    <script type="text/javascript">
+      atOptions = { 'key' : '7b617b2fc4e84542dd4b3a49fb75bff4', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+    </script>
+    <script type="text/javascript" src="https://www.highperformanceformat.com/7b617b2fc4e84542dd4b3a49fb75bff4/invoke.js"></script>
+""", height=95, scrolling=False)
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.write("")
-st.markdown("<p style='text-align: center; color: #475569; font-size: 0.85rem;'>Universal Downloader Engine • Core Version 2026</p>", unsafe_allow_html=True)
-    
+st.write("")
+st.markdown("<p style='text-align: center; color: #94a3b8 !important; font-size: 0.8rem;'>Alliance Secure Tool Network • Powered by Aarambh Engine v1.5</p>", unsafe_allow_html=True)
